@@ -1,0 +1,33 @@
+/**
+ * H5BP.com = normalize == 2012-03-15 ====
+ * @link github.com/h5bp/html5-boilerplate
+ * @link github.com/necolas/normalize.css
+ * @link github.com/ryanve/css3base
+ * @license public domain ================
+ */
+html{font-size:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}html,button,input,select,textarea{font-family:sans-serif;color:#222}body{margin:0;font-size:1em;line-height:1.4}article,aside,details,figcaption,figure,footer,header,hgroup,nav,section,summary{display:block}audio,canvas,video{display:inline-block;*display:inline;*zoom:1}[hidden],audio:not([controls]){display:none}
+a{color:#00e}/*a:visited{color:#551a8b}*/a:hover{color:#06e}a:focus{outline:thin dotted}a:hover,a:active{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:bold}small{font-size:85%}blockquote{margin:1em 40px}dfn{font-style:italic}hr{display:block;height:1px;border:0;border-top:1px solid #ccc;margin:1em 0;padding:0}ins{background:#ff9;color:#000;text-decoration:none}mark{background:#ff0;color:#000;font-style:italic;font-weight:bold}pre,code,kbd,samp{font-family:monospace,serif;_font-family:'courier new',monospace;font-size:1em}pre{white-space:pre;white-space:pre-wrap;word-wrap:break-word}q{quotes:none}q:before,q:after{content:"";content:none}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-0.5em}sub{bottom:-0.25em}ul,ol{margin:1em 0;padding:0 0 0 40px}dd{margin:0 0 0 40px}nav ul,nav ol{list-style:none;list-style-image:none;margin:0;padding:0}
+img{border:0;-ms-interpolation-mode:bicubic;vertical-align:middle}svg:not(:root){overflow:hidden}legend{border:0;*margin-left:-7px;padding:0;white-space:normal}figure,form{margin:0}fieldset{border:0;margin:0;padding:0}label{cursor:pointer}button,input,select,textarea{font-size:100%;margin:0;vertical-align:baseline;*vertical-align:middle}button,input{line-height:normal}button,input[type="button"],input[type="reset"],input[type="submit"]{cursor:pointer;-webkit-appearance:button;*overflow:visible}button[disabled],input[disabled]{cursor:default}input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0;*width:13px;*height:13px}input[type="search"]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type="search"]::-webkit-search-decoration,input[type="search"]::-webkit-search-cancel-button{-webkit-appearance:none}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}textarea{overflow:auto;vertical-align:top;resize:vertical}input:valid,textarea:valid{}input:invalid,textarea:invalid{background-color:#f0dddd}table{border-collapse:collapse;border-spacing:0}td{vertical-align:top}.chromeframe{margin:0.2em 0;background:#ccc;color:black;padding:0.2em 0}
+::-moz-selection{background:#fe57a1;color:#fff;text-shadow:none}
+     ::selection{background:#fe57a1;color:#fff;text-shadow:none}
+	 
+/**
+ * Responsive Base | 2012-03-16 | Place this after normalize and
+ * before your primary styles to provide a solid responsive base.
+ * @link     github.com/ryanve/css3base
+ * @license  creativecommons.org/publicdomain/zero/1.0/
+ */
+html{overflow-x:hidden}body{margin:0 auto}code{word-wrap:break-word}audio,canvas,img,math,svg,video {width: inherit;max-width: 100%;height: auto}embed,iframe,object{max-width:100%}
+h1{font-size:162%;margin:.38em 0}h2{font-size:138%;margin:.5em 0}h3{font-size:120%;margin:.612em 0}h4{font-size:100%;margin:1em 0}h5{font-size:85%;margin:1.2em 0}h6{font-size:85%;margin:1.38em 0}dl,ul,ol,p{line-height:1.4}dl,ul,ol,p{margin:1em 0}dd+dt{margin-top:1em}hgroup h1,hgroup h2,hgroup h3,hgroup h4,hgroup h5,hgroup h6{margin:0}
+@media all and (min-width:481px){h1{font-size:262%}h2{font-size:162%}h3{font-size:138%}h4{font-size:120%}h5{font-size:100%}h6{font-size:85%}}
+@media all and (max-width:320px){table,thead,tbody,th,td,tr{display:block}tr+tr{margin-top:1em}}
+
+/**
+ * CSS for implementing Solarized colors | 2012-04-03
+ * @link  ethanschoonover.com/solarized (MIT License)
+ * @link  github.com/ryanve/css3base    (CC0 License)
+ * @example <div class="solarized"> for light background
+ * @example <div class="solarized dark"> for dark background
+ */
+.pre,pre{font-family:monospace,serif;_font-family:'courier new',monospace;font-size:1em;white-space:pre;white-space:pre-wrap;word-wrap:break-word}.solarized,.solarized.dark .solarized{color:#839496;background:#fdf6e3}.solarized.dark{color:#657b83;background:#002b36}.solarized pre em,.pre em,pre.solarized em,.solarized code em,.solarized pre var,.pre var,pre.solarized var,.solarized code var,.solarized pre mark,.pre mark,pre.solarized mark,.solarized code mark{font-style:normal}.solarized small,.solarized.dark .solarized small,.solarized.dark em,.solarized.dark strong{color:#93a1a1}.solarized em,.solarized.dark .solarized em,.solarized strong,.solarized.dark .solarized strong,.solarized.dark small{color:#586e75}.solarized pre small,.pre small,pre.solarized small,.solarized code small{font-size:inherit;*font-size:100%}.solarized mark{color:#657b83}.solarized mark{color:inherit}.solarized mark,.solarized.dark .solarized mark{background:#eee8d5}.solarized.dark mark{background:#073642}
+.solarized a{color:#268bd2}.solarized a:hover{color:#6c71c4}.solarized .yellow{color:#b58900!important}.solarized .orange{color:#cb4b16!important}.solarized .red{color:#dc322f!important}.solarized .magenta{color:#d33682!important}.solarized .violet{color:#6c71c4!important}.solarized .blue{color:#268bd2!important}.solarized .cyan{color:#2aa198!important}.solarized .green{color:#859900!important}

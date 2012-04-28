@@ -1,4 +1,4 @@
-airve.github.com
+[airve.github.com](http://airve.github.com)
 ================
 
 cachable URIs for common scripts

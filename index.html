@@ -6,15 +6,16 @@
 	<title>airve.github.com</title>
 	<link rel=stylesheet href="css/packs/normalize_responsive_solarized.min.css">
 	<meta name=author content="Ryan Van Etten"> 
-	<meta name=description content="airve.github.com uses GitHub Pages as a CDN to serve cachable versions of common scripts.">
+	<meta name=description content="airve.github.com uses GitHub Pages as a CDN to serve cachable versions of common opensource scripts.">
 	<style>
 		a{text-decoration:none}
-		body{margin:0 auto;width:94%;padding:3%;max-width:960px}
+		body{margin:0 auto;width:94%;padding:3%;max-width:960px;font-size:110%}
 		section,th,td{padding:.5em 1em .5em 0;text-align:left}
+		.builds{list-style-type:none;padding:0;margin:0 0 0 -.5em}
+		.builds li:before{content:"_";font-family:monospace}
 	</style>
-	<!--code.google.com/p/html5shiv/ -->
 	<!--[if lt IE 9]>
-		<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="http://airve.github.com/js/modernizr/modernizr_shiv.js"></script>
 	<![endif]-->
 </head>
 <body>
@@ -22,7 +23,7 @@
 		<h1><a href="http://airve.github.com"><img id="logo" src="http://cdn.airve.com/airve/logo/105/medium/airve_105_d08_480x160.png" alt="Airve"></a></h1>
 	</header>
 	<section>
-		<div><a href="http://airve.github.com">airve.github.com</a> uses <a href="http://pages.github.com/">GitHub Pages</a> as a CDN to serve cachable versions of common opensource scripts. I set this up so that I'd have CDN links for my <a href="https://github.com/ryanve">plugins</a> and for other resources I use frequently. Feel free to use any of the links below. The links serve the latest version and get cachebusted when updated. To add a library, push to [the repo](https://github.com/airve/airve.github.com)'s master branch, or suggest it <a href="https://github.com/airve/airve.github.com/issues">here</a>, or hit me up <a href="http://twitter.com/ryanve">@ryanve</a>. Also checkout <a href="http://www.cdnjs.com/">cdnjs.com</a>.</div>
+		<div><a href="http://airve.github.com">airve.github.com</a> uses <a href="http://pages.github.com/">GitHub Pages</a> as a CDN to serve cachable versions of common opensource scripts. I set this up so that I'd have CDNish links for my <a href="https://github.com/ryanve">plugins</a> and for other resources I use frequently. Feel free to use the links below as you would from a CDN. The links serve the latest version and get cachebusted when updated or every 2 days. To add a library, push to <a href="https://github.com/airve/airve.github.com">the repo</a>'s master branch, suggest it <a href="https://github.com/airve/airve.github.com/issues">here</a>, or hit me up <a href="http://twitter.com/ryanve">@ryanve</a>.</div>
 	</section>
 	<section id="js">
 	<h2>JavaScript</h2>
@@ -47,9 +48,11 @@
 			<td>utils</td>
 		</tr>
 		<tr>
-			<td><a href="http://ender.no.de/#jeesh">Jeesh</a></td>
-			<td><a href="http://airve.github.com/js/jeesh/jeesh.min.js">min</a></td>
-			<td>DOM utils and events</td>
+			<td><a href="https://github.com/ryanve/domdata">domData</a></td>
+			<td><a href="http://airve.github.com/js/domdata/domdata.js">dev</a> | 
+			    <a href="http://airve.github.com/js/domdata/domdata.min.js">min</a>
+			</td>
+			<td>HTML5 dataset API</td>
 		</tr>
 		<tr>
 			<td><a href="https://github.com/ryanve/response.js">Response</a></td>
@@ -59,18 +62,34 @@
 			<td>responsive design tools</td>
 		</tr>
 		<tr>
-			<td><a href="https://github.com/ryanve/domdata">domData</a></td>
-			<td><a href="http://airve.github.com/js/domdata/domdata.js">dev</a> | 
-			    <a href="http://airve.github.com/js/domdata/domdata.min.js">min</a>
-			</td>
-			<td>HTML5 dataset API</td>
-		</tr>
-		<tr>
 			<td><a href="https://github.com/ryanve/elo">elo</a></td>
 			<td><a href="http://airve.github.com/js/elo/elo.js">dev</a> | 
 			    <a href="http://airve.github.com/js/elo/elo.min.js">min</a>
 			</td>
-			<td>events API</td>
+			<td>extendable events API</td>
+		</tr>
+		<tr>
+			<td><a href="https://github.com/Modernizr/Modernizr">Modernizr</a></td>
+			<td><a href="http://airve.github.com/js/modernizr/modernizr.js">dev</a><br>
+				<ul class="builds">
+					<li><a href="http://airve.github.com/js/modernizr/modernizr_shiv.js" title="build w/ only the shiv">shiv.min</a>
+					<li><a href="http://airve.github.com/js/modernizr/modernizr_shiv-css.js" title="build w/ the shiv and *all* the CSS checkboxes but nothing else">shiv-css.min</a>
+				</ul>
+			</td>
+			<td>feature detection</td>
+		</tr>
+		<tr>
+			<td><a href="https://github.com/ender-js/ender-js">ender</a></td>
+			<td><a href="http://airve.github.com/js/ender/ender.js" title="ender's client-side code">dev</a>
+				<ul class="builds">
+					<!-- I should have put the jeesh inside the ender folder from the start. 
+					     Keep it in its own folder so that we don't break any sites. 
+						 We could duplicate it in the ender folder but then we'd have to 
+						 maintain it in both. Put any new ender builds in the ender folder. -->
+					<li><a href="http://airve.github.com/js/jeesh/jeesh.min.js">jeesh.min</a>
+				</ul>
+			</td>
+			<td>extendable DOM lib</td>
 		</tr>
 		<tr>
 			<td><a href="https://github.com/ryanve/taos">Taos</a></td>
@@ -87,7 +106,7 @@
 			<td>polyfill</td>
 		</tr>
 		<tr>
-			<td><a href="http://selectivizr.com/">Selectivizr</a></td>
+			<td><a href="https://github.com/keithclark/selectivizr">Selectivizr</a></td>
 			<td><a href="http://airve.github.com/js/selectivizr/selectivizr.js">dev</a> | 
 			    <a href="http://airve.github.com/js/selectivizr/selectivizr.min.js">min</a>
 			</td>

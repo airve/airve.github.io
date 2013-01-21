@@ -1,152 +1,152 @@
-<!doctype html>
+<!DOCTYPE html>
 <html class="solarized">
 <head>
-	<meta charset=utf-8>
-	<link rel=dns-prefetch href=//cdn.airve.com>
-	<title>airve.github.com</title>
-	<link rel=stylesheet href="css/packs/normalize_responsive_solarized.min.css">
-	<meta name=author content="Ryan Van Etten"> 
-	<meta name=description content="airve.github.com uses GitHub Pages as a CDN to serve cachable versions of common opensource scripts.">
-	<style>
-		a{text-decoration:none}
-		body{margin:0 auto;width:94%;padding:3%;max-width:960px;font-size:110%}
-		section,th,td{padding:.5em 1em .5em 0;text-align:left}
-		td{min-width:100px}
-		.builds{list-style-type:none;padding:0;margin:0 0 0 -.5em}
-		.builds li:before{content:"_";font-family:monospace}
-	</style>
-	<!--[if lt IE 9]>
-		<script src="http://airve.github.com/js/modernizr/modernizr_shiv.js"></script>
-	<![endif]-->
+    <meta charset=utf-8>
+    <link rel=dns-prefetch href=//cdn.airve.com>
+    <title>airve.github.com</title>
+    <link rel=stylesheet href="css/packs/normalize_responsive_solarized.min.css">
+    <meta name=author content="Ryan Van Etten"> 
+    <meta name=description content="airve.github.com uses GitHub Pages as a CDN to serve cachable versions of common opensource scripts.">
+    <style>
+        a{text-decoration:none}
+        body{margin:0 auto;width:94%;padding:3%;max-width:960px;font-size:110%}
+        section,th,td{padding:.5em 1em .5em 0;text-align:left}
+        td{min-width:100px}
+        .builds{list-style-type:none;padding:0;margin:0 0 0 -.5em}
+        .builds li:before{content:"_";font-family:monospace}
+    </style>
+    <!--[if lt IE 9]>
+        <script src="http://airve.github.com/js/modernizr/modernizr_shiv.js"></script>
+    <![endif]-->
 </head>
 <body>
-	<header role="banner">
-		<h1>
+    <header role="banner">
+        <h1>
             <a href="http://airve.github.com">
                 <img id="logo" src="http://cdn.airve.com/airve/logo/120/medium/airve_120_480_e05.png" width="480" alt="airve">
             </a>
         </h1>
-	</header>
-	<section>
-		<div><a href="http://airve.github.com">airve.github.com</a> uses <a href="http://pages.github.com/">GitHub Pages</a> as a CDN to serve cachable versions of common opensource scripts. I set this up so that I'd have CDNish links for my <a href="https://github.com/ryanve">plugins</a> and for other resources I use frequently. Feel free to use the links below as you would from a CDN. The links serve the latest version and get cachebusted when updated or every 2 days. To add a library, push to <a href="https://github.com/airve/airve.github.com">the repo</a>'s master branch, suggest it <a href="https://github.com/airve/airve.github.com/issues">here</a>, or hit me up <a href="http://twitter.com/ryanve">@ryanve</a>.</div>
-	</section>
-	<section id="js">
-	<h2>JavaScript</h2>
-	<table>
-		<tr>
-			<th scope="col">Repo</th>
-			<th scope="col">CDN</th>
-			<th scope="col">Desc</th>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/SlexAxton/yepnope.js">Yepnope</a></td>
-			<td><a href="http://airve.github.com/js/yepnope/yepnope.js">dev</a> | 
-			    <a href="http://airve.github.com/js/yepnope/yepnope.min.js">min</a>
-			</td>
-			<td>async loader</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/documentcloud/underscore/">Underscore</a></td>
-			<td><a href="http://airve.github.com/js/underscore/underscore.js">dev</a> | 
-			    <a href="http://airve.github.com/js/underscore/underscore.min.js">min</a>
-			</td>
-			<td>utils</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/dope" title="domData is now dope">dope</a></td>
-			<td><a href="http://airve.github.com/js/dope/dope.js">dev</a> | 
-			    <a href="http://airve.github.com/js/dope/dope.min.js">min</a>
-			</td>
-			<td>HTML5 dataset API</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/response.js">Response</a></td>
-			<td><a href="http://airve.github.com/js/response/response.js">dev</a> | 
-			    <a href="http://airve.github.com/js/response/response.min.js">min</a>
-			</td>
-			<td>responsive design tools</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/elo">elo</a></td>
-			<td><a href="http://airve.github.com/js/elo/elo.js">dev</a> | 
-			    <a href="http://airve.github.com/js/elo/elo.min.js">min</a>
-			</td>
-			<td>extendable events API</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/oi">oi</a></td>
-			<td><a href="http://airve.github.com/js/oi/oi.js">dev</a> | 
-			    <a href="http://airve.github.com/js/oi/oi.min.js">min</a>
-			</td>
-			<td>standalone domReady module</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/Modernizr/Modernizr">Modernizr</a></td>
-			<td><a href="http://airve.github.com/js/modernizr/modernizr.js">dev</a><br>
-				<ul class="builds">
-					<li><a href="http://airve.github.com/js/modernizr/modernizr_shiv.min.js" title="build w/ only the shiv">shiv.min</a>
-					<li><a href="http://airve.github.com/js/modernizr/modernizr_shiv-css.min.js" title="build w/ the shiv and *all* the CSS checkboxes but nothing else">shiv-css.min</a>
-				</ul>
-			</td>
-			<td>feature detection</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ender-js/ender-js">ender</a></td>
-			<td><a href="http://airve.github.com/js/ender/ender.js" title="ender's client-side code">dev</a>
-				<ul class="builds">
-					<!-- I should have put the jeesh inside the ender folder from the start. 
-					     Keep it in its own folder so that we don't break any sites. 
-						 We could duplicate it in the ender folder but then we'd have to 
-						 maintain it in both. Put any new ender builds in the ender folder. -->
-				    <li><a href="http://airve.github.com/js/jeesh/jeesh.js">jeesh</a>
-					<li><a href="http://airve.github.com/js/jeesh/jeesh.min.js">jeesh.min</a> 
-				</ul>
-			</td>
-			<td>extendable DOM lib</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/dj">dj</a></td>
-			<td><a href="http://airve.github.com/js/dj/dj.js">dev</a> | 
-			    <a href="http://airve.github.com/js/dj/dj.min.js">min</a>
-			</td>
-			<td>remixable JavaScript</td>
-		</tr>
+    </header>
+    <section>
+        <div><a href="http://airve.github.com">airve.github.com</a> uses <a href="http://pages.github.com/">GitHub Pages</a> as a CDN to serve cachable versions of common opensource scripts. I set this up so that I'd have CDNish links for my <a href="https://github.com/ryanve">plugins</a> and for other resources I use frequently. Feel free to use the links below as you would from a CDN. The links serve the latest version and get cachebusted when updated or every 2 days. To add a library, push to <a href="https://github.com/airve/airve.github.com">the repo</a>'s master branch, suggest it <a href="https://github.com/airve/airve.github.com/issues">here</a>, or hit me up <a href="http://twitter.com/ryanve">@ryanve</a>.</div>
+    </section>
+    <section id="js">
+    <h2>JavaScript</h2>
+    <table>
         <tr>
-			<td><a href="https://github.com/ryanve/cue">cue</a></td>
-			<td><a href="http://airve.github.com/js/cue/cue.js">dev</a> | 
-			    <a href="http://airve.github.com/js/cue/cue.min.js">min</a>
-			</td>
-			<td>&lt;audio&gt; and &lt;video&gt; playlists</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/taos">taos</a></td>
-			<td><a href="http://airve.github.com/js/taos/taos.js">dev</a> | 
-			    <a href="http://airve.github.com/js/taos/taos.min.js">min</a>
-		    </td>
-			<td>toggles via data attributes</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/ryanve/vibe">vibe</a></td>
-			<td><a href="http://airve.github.com/js/vibe/vibe.js">dev</a> | 
-			    <a href="http://airve.github.com/js/vibe/vibe.min.js">min</a>
-		    </td>
-			<td>classList module</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/kriskowal/es5-shim">ES5 shim</a></td>
-			<td><a href="http://airve.github.com/js/es5-shim/es5-shim.js">dev</a>  | 
-			    <a href="http://airve.github.com/js/es5-shim/es5-shim.min.js">min</a>
-			</td>
-			<td>polyfill</td>
-		</tr>
-		<tr>
-			<td><a href="https://github.com/keithclark/selectivizr">Selectivizr</a></td>
-			<td><a href="http://airve.github.com/js/selectivizr/selectivizr.js">dev</a> | 
-			    <a href="http://airve.github.com/js/selectivizr/selectivizr.min.js">min</a>
-			</td>
-			<td>polyfill</td>
-		</tr>
-	</table>
-	</section>
+            <th scope="col">Repo</th>
+            <th scope="col">CDN</th>
+            <th scope="col">Desc</th>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/SlexAxton/yepnope.js">Yepnope</a></td>
+            <td><a href="http://airve.github.com/js/yepnope/yepnope.js">dev</a> | 
+                <a href="http://airve.github.com/js/yepnope/yepnope.min.js">min</a>
+            </td>
+            <td>async loader</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/documentcloud/underscore/">Underscore</a></td>
+            <td><a href="http://airve.github.com/js/underscore/underscore.js">dev</a> | 
+                <a href="http://airve.github.com/js/underscore/underscore.min.js">min</a>
+            </td>
+            <td>utils</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/dope" title="domData is now dope">dope</a></td>
+            <td><a href="http://airve.github.com/js/dope/dope.js">dev</a> | 
+                <a href="http://airve.github.com/js/dope/dope.min.js">min</a>
+            </td>
+            <td>HTML5 dataset API</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/response.js">Response</a></td>
+            <td><a href="http://airve.github.com/js/response/response.js">dev</a> | 
+                <a href="http://airve.github.com/js/response/response.min.js">min</a>
+            </td>
+            <td>responsive design tools</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/elo">elo</a></td>
+            <td><a href="http://airve.github.com/js/elo/elo.js">dev</a> | 
+                <a href="http://airve.github.com/js/elo/elo.min.js">min</a>
+            </td>
+            <td>extendable events API</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/oi">oi</a></td>
+            <td><a href="http://airve.github.com/js/oi/oi.js">dev</a> | 
+                <a href="http://airve.github.com/js/oi/oi.min.js">min</a>
+            </td>
+            <td>standalone domReady module</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/Modernizr/Modernizr">Modernizr</a></td>
+            <td><a href="http://airve.github.com/js/modernizr/modernizr.js">dev</a><br>
+                <ul class="builds">
+                    <li><a href="http://airve.github.com/js/modernizr/modernizr_shiv.min.js" title="build w/ only the shiv">shiv.min</a>
+                    <li><a href="http://airve.github.com/js/modernizr/modernizr_shiv-css.min.js" title="build w/ the shiv and *all* the CSS checkboxes but nothing else">shiv-css.min</a>
+                </ul>
+            </td>
+            <td>feature detection</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ender-js/ender-js">ender</a></td>
+            <td><a href="http://airve.github.com/js/ender/ender.js" title="ender's client-side code">dev</a>
+                <ul class="builds">
+                    <!-- I should have put the jeesh inside the ender folder from the start. 
+                         Keep it in its own folder so that we don't break any sites. 
+                         We could duplicate it in the ender folder but then we'd have to 
+                         maintain it in both. Put any new ender builds in the ender folder. -->
+                    <li><a href="http://airve.github.com/js/jeesh/jeesh.js">jeesh</a>
+                    <li><a href="http://airve.github.com/js/jeesh/jeesh.min.js">jeesh.min</a> 
+                </ul>
+            </td>
+            <td>extendable DOM lib</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/dj">dj</a></td>
+            <td><a href="http://airve.github.com/js/dj/dj.js">dev</a> | 
+                <a href="http://airve.github.com/js/dj/dj.min.js">min</a>
+            </td>
+            <td>remixable JavaScript</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/cue">cue</a></td>
+            <td><a href="http://airve.github.com/js/cue/cue.js">dev</a> | 
+                <a href="http://airve.github.com/js/cue/cue.min.js">min</a>
+            </td>
+            <td>&lt;audio&gt; and &lt;video&gt; playlists</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/taos">taos</a></td>
+            <td><a href="http://airve.github.com/js/taos/taos.js">dev</a> | 
+                <a href="http://airve.github.com/js/taos/taos.min.js">min</a>
+            </td>
+            <td>toggles via data attributes</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/ryanve/vibe">vibe</a></td>
+            <td><a href="http://airve.github.com/js/vibe/vibe.js">dev</a> | 
+                <a href="http://airve.github.com/js/vibe/vibe.min.js">min</a>
+            </td>
+            <td>classList module</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/kriskowal/es5-shim">ES5 shim</a></td>
+            <td><a href="http://airve.github.com/js/es5-shim/es5-shim.js">dev</a>  | 
+                <a href="http://airve.github.com/js/es5-shim/es5-shim.min.js">min</a>
+            </td>
+            <td>polyfill</td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/keithclark/selectivizr">Selectivizr</a></td>
+            <td><a href="http://airve.github.com/js/selectivizr/selectivizr.js">dev</a> | 
+                <a href="http://airve.github.com/js/selectivizr/selectivizr.min.js">min</a>
+            </td>
+            <td>polyfill</td>
+        </tr>
+    </table>
+    </section>
 </body>
 </html>

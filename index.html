@@ -164,5 +164,17 @@
             -->
         </table>
     </section>
+
+<script>
+ // async Google Analytics that only runs if online: change UA-XXXXX-X 
+ // to yours (include optional hostname to restrict to an exact site)
+(function (d,t,l,a,h) {
+    if((h&&h!==l.hostname)||!(l=l.protocol)||0<l.indexOf("http"))return; 
+    var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    this["_gaq"]=[["_setAccount",a],["_trackPageview"]];
+    g.async=1;g.src=("https:"==l?"//ssl":"//www") + ".google-analytics.com/ga.js";
+    s.parentNode.insertBefore(g,s);
+}(document,"script",location,"UA-5731919-27","airve.github.com"));
+</script>
 </body>
 </html>

@@ -3,7 +3,7 @@
  * @link        verge.airve.com
  * @license     MIT
  * @copyright   2012 Ryan Van Etten
- * @version     1.6.3
+ * @version     1.7.0
  */
 
 /*jslint browser: true, devel: true, node: true, passfail: false, bitwise: true
@@ -37,10 +37,20 @@
         }
       , viewportW = makeViewportGetter('width', 'innerWidth', 'clientWidth')
       , viewportH = makeViewportGetter('height', 'innerHeight', 'clientHeight')
-      , xports = {}
-      , effins = {};
-      
+      , xports = {};
+    
+    /** 
+     * Test if a media query is active. (Fallback uses Modernizr if avail.)
+     * @since   1.6.0
+     * @return  {boolean}
+     */    
     xports['mq'] = !matchMedia && Modernizr && Modernizr['mq'] || mq;
+
+    /** 
+     * Normalized, gracefully-degrading matchMedia.
+     * @since   1.6.0
+     * @return  {Object}
+     */ 
     xports['matchMedia'] = matchMedia ? function() {
         // matchMedia must be binded to window
         return matchMedia.apply(win, arguments);
@@ -62,94 +72,110 @@
      */
     xports['viewportH'] = viewportH;
     
+    /**
+     * alternate syntax for getting viewport dims
+     * @return {Object}
+     */
+    function viewport() {
+        return {
+            'width': viewportW()
+          , 'height': viewportH()
+        };
+    }
+    //xports['viewport'] = viewport;
+    
     /** 
-     * Cross-browser version of window.scrollX
+     * Cross-browser window.scrollX
      * @since   1.0.0
      * @return  {number}
      */
-    function scrollX() {
+    xports['scrollX'] = function() {
         return win.pageXOffset || docElem.scrollLeft; 
-    }
-    xports['scrollX'] = scrollX;
+    };
 
     /** 
-     * Cross-browser version of window.scrollY
+     * Cross-browser window.scrollY
      * @since   1.0.0
      * @return  {number}
      */
-    function scrollY() {
+    xports['scrollY'] = function() {
         return win.pageYOffset || docElem.scrollTop; 
-    }
-    xports['scrollY'] = scrollY;
+    };
 
     /** 
-     * Cross-browser element.getBoundingClientRect plus optional cushion. Coords are 
-     * relative to the top-left corner of the viewport.
+     * Cross-browser element.getBoundingClientRect plus optional cushion.
+     * Coords are relative to the top-left corner of the viewport.
      * @since  1.0.0
      * @param  {Object|Array} el       DOM element or collection (defaults to first item)
      * @param  {number=}      cushion  +/- pixel amount to act as a cushion around the viewport
-     * @param  {*=}           nix      if truthy, assumes v/i/o iterator and `cushion` resets to 0
-     * @return {Object|undefined}
+     * @return {Object|boolean}
      */
-    function rectangle(el, cushion, nix) {
+    function rectangle(el, cushion) {
         var o = {};
         el && !el.nodeType && (el = el[0]);
-        if (!el || 1 !== el.nodeType) { return; }
-        cushion = typeof cushion == 'number' && !nix && cushion || 0;
+        if (!el || 1 !== el.nodeType) { return false; }
+        cushion = typeof cushion == 'number' && cushion || 0;
         el = el.getBoundingClientRect(); // read-only
         o['width'] = (o['right'] = el['right'] + cushion) - (o['left'] = el['left'] - cushion);
         o['height'] = (o['bottom'] = el['bottom'] + cushion) - (o['top'] = el['top'] - cushion);
         return o;
     }
     xports['rectangle'] = rectangle;
-    effins['rectangle'] = function(cushion) {
-        return rectangle(this, cushion);
+    
+    /**
+     * Get the viewport aspect ratio (or the aspect ratio of an object or element)
+     * @since  1.7.0
+     * @param  {Object=}  o    optional object with width/height props or methods
+     * @return {number}
+     * @link   w3.org/TR/css3-mediaqueries/#orientation
+     */
+    function aspect(o) {
+        o = o && 1 === o.nodeType ? rectangle(o) : o;
+        var h = null == o ? viewportH : o['height']
+          , w = null == o ? viewportW : o['width'];
+        h = typeof h == 'function' ? h.call(o) : h;
+        w = typeof w == 'function' ? w.call(o) : w;
+        return w/h;
+    }
+    xports['aspect'] = aspect;
+
+    /**
+     * Test if an element is in the same x-axis section as the viewport.
+     * @since   1.0.0
+     * @param   {Object}   el
+     * @param   {number=}  cushion
+     * @return  {boolean}
+     */
+    xports['inX'] = function(el, cushion) {
+        var r = rectangle(el, cushion);
+        return !!r && r.right >= 0 && r.left <= viewportW();
     };
 
     /**
-     * Determine if an element is in the same section 
-     * of the x-axis as the current viewport is.
+     * Test if an element is in the same y-axis section as the viewport.
      * @since   1.0.0
      * @param   {Object}   el
      * @param   {number=}  cushion
      * @return  {boolean}
      */
-    function inX(el, cushion) {
-        var r = rectangle(el, cushion);
-        return !!r && r.right >= 0 && r.left <= viewportW();
-    }
-    xports['inX'] = inX;
-
-    /**
-     * Determine if an element is in the same section 
-     * of the y-axis as the current viewport is.
-     * @since   1.0.0
-     * @param   {Object}   el
-     * @param   {number=}  cushion
-     * @return  {boolean}
-     */
-    function inY(el, cushion) {
+    xports['inY'] = function(el, cushion) {
         var r = rectangle(el, cushion);
         return !!r && r.bottom >= 0 && r.top <= viewportH();
-    }
-    xports['inY'] = inY;
+    };
 
     /**
-     * Determine if an element is in the current viewport.
+     * Test if an element is in the viewport.
      * @since   1.0.0
      * @param   {Object}   el
      * @param   {number=}  cushion
      * @return  {boolean}
      */
-    function inViewport(el, cushion) {
+    xports['inViewport'] = function(el, cushion) {
         // Equiv to `inX(el, cushion) && inY(el, cushion)` but just manually do both 
         // to avoid calling rectangle() twice. It gzips just as small like this.
         var r = rectangle(el, cushion);
         return !!r && r.bottom >= 0 && r.right >= 0 && r.top <= viewportH() && r.left <= viewportW();
-    }
-    xports['inViewport'] = inViewport;
+    };
 
-    // xports['fn'] = effins;
     return xports;
-
 }));

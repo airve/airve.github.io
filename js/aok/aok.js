@@ -3,13 +3,11 @@
  * @link        github.com/ryanve/aok
  * @license     MIT
  * @copyright   2013 Ryan Van Etten
- * @version     1.0.0
+ * @version     1.1.0
  */
 
-/*jslint browser: true, devel: true, node: true, passfail: false, bitwise: true
-, continue: true, debug: true, eqeq: true, es5: true, forin: true, newcap: true
-, nomen: true, plusplus: true, regexp: true, undef: true, sloppy: true, stupid: true
-, sub: true, white: true, indent: 4, maxerr: 100 */
+/*jshint expr:true, sub:true, supernew:true, debug:true, node:true, boss:true, devel:true, evil:true, 
+  laxcomma:true, eqnull:true, undef:true, unused:true, browser:true, jquery:true, maxerr:100 */
 
 (function(root, name, make) {
     typeof module != 'undefined' && module['exports'] ? module['exports'] = make() : root[name] = make();
@@ -17,6 +15,9 @@
 
     var win = window
       , doc = document
+      , plain = {}
+      , owns = plain.hasOwnProperty
+      , toString = plain.toString
       , uid = 0;
       
     /**
@@ -24,11 +25,15 @@
      * @param  {*=}  data
      */
     function Aok(data) {
-        var k;
-        if (typeof data != 'object' || !data) {
+        // Own 'test' unless instantiated w/o args,
+        // or unless `data` is 'object' w/o 'test'.
+        // Running proceeds only if 'test' is owned.
+        if (data && typeof data == 'object') {
+            for (var k in data) {
+                owns.call(data, k) && (this[k] = data[k]); 
+            }
+        } else if (arguments.length) {
             this['test'] = data;
-        } else for (k in data) {
-            this[k] = data[k]; 
         }
         this['init']();
     }
@@ -37,18 +42,18 @@
      * @param  {*=}  data
      * @return {Aok}
      */
-    function aok(data) { 
-        return new Aok(data); 
+    function aok(data) {
+        return arguments.length ? new Aok(data) : new Aok; 
     }
     
-    // sync the prototypes
+    // Sync the prototypes
     aok.prototype = Aok.prototype;
     
-    // default messages
+    // Default messages
     aok.prototype['pass'] = 'Pass';
     aok.prototype['fail'] = 'Fail';
     
-    // console methods:
+    // Console abstractions
     (function(target, console, win) {
         /**
          * @param  {string}            name
@@ -73,8 +78,18 @@
         assign('log', 0, 'express');
     }(aok, win.console, win));
     
-    // sync the "express" method
+    // Alias the "express" method. `aok.prototype.express` is used in the 
+    // default handler. Override it as needed for customization.
     aok.prototype['express'] = aok['express'];
+    
+    /**
+     * @param  {*}  item
+     * @return {string}
+     */
+    function explain(item) {
+        return '' + (item === Object(item) ? toString.call(item) : item);
+    }
+    aok['explain'] = explain;
     
     /**
      * @param    {*} o  is an Object or mixed value
@@ -86,14 +101,15 @@
         return 2 == arguments.length ? result.call(o, o[k]) : typeof o == 'function' ? o.call(this) : o;
     }
     aok['result'] = result;
-    
+
     /**
      * @return {Aok}
      */
     aok.prototype['init'] = function() {
         if (this === win) { throw new Error('@this'); }
-        null == this['id'] && (this['id'] = ++uid);
-        return this['run']();
+        owns.call(this, 'id') || (this['id'] = ++uid);
+        owns.call(this, 'test') && this['run']();
+        return this;
     };
     
     /**
@@ -118,11 +134,14 @@
      */
     aok.prototype['handler'] = function() {
         var msg = this['cull']();
-        if (typeof msg == 'string') {
-            this['express']('#' + this['id'] + ': ' + msg);
-        } else if (typeof msg == 'function') {
+        if (typeof msg == 'function') {
             msg.call(this);
-        } return this;
+        } else {
+            msg = explain(msg);
+            owns.call(this, 'remark') && (msg += ' (' + explain(this['remark']) + ')');
+            this['express']('#' + this['id'] + ': ' + msg); 
+        }
+        return this;
     };
     
     /**

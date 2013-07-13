@@ -1,0 +1,3 @@
+[submodule "ryanve/verge"]
+	path = ryanve/verge
+	url = git@github.com:ryanve/verge.git

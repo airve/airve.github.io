@@ -1,43 +1,33 @@
 /*!
  * cue.js     Native HTML5 <audio> and <video> playlists via JSON and data attributes.
- * @author    Ryan Van Etten <@ryanve>
+ * @author    Ryan Van Etten
  * @link      github.com/ryanve/cue
  * @license   MIT 
- * @version   0.5.1
+ * @version   0.5.9
  * @requires  jQuery or ender
  */
 
 /*jshint expr:true, sub:true, supernew:true, debug:true, node:true, boss:true, devel:true, evil:true, 
   laxcomma:true, eqnull:true, undef:true, unused:true, browser:true, jquery:true, maxerr:100 */
 
-(function(root, document, undefined) {
-
+(function(root, window, document) {
     // developer.mozilla.org/en-US/docs/DOM/HTMLMediaElement
     // developer.mozilla.org/en-US/docs/DOM/Media_events
 
-    var require = root['require']
-      , jQuery = root['jQuery'] || (!!require && require('jquery'))
-      , $ = jQuery || root['ender'] || (!!require && require('ender'))
-      , each = $['each']
-      
-      , trimmer = /^\s+|\s+$/
-      , trim = $.trim || (''.trim ? function(s) { 
-            return s.trim(); 
-        } : function(s) {
-            return s.replace(trimmer, '');
-        })
-
-      , nativeJSONParse = !!root['JSON'] && JSON['parse']
-      , parseJSON = $['parseJSON'] || (nativeJSONParse && function(s) {
-            if (typeof s != 'string' || !(s = trim(s))) { return null; }
-            return nativeJSONParse(s);
-        })
-        
+    var $controls
+      , require = root['require']
+      , $ = root['jQuery'] || require && require('jquery') || root['ender'] || require && require('ender')
+      , trim = $['trim'] || function(s) {
+            return s.replace(/^\s+|\s+$/, '');
+        }
+      , JSON = window['JSON']
+      , parser = $['parseJson'] || JSON && JSON['parse']
+      , parseJson = function(s) {
+            return typeof s == 'string' && (s = trim(s)) ? parser(s) : null;
+        }
       , singleDigits = /(^|\D)(\d\D|\d$)/g
-
-      , audio    = 'audio'
-      , video    = 'video'
-      , controls = 'controls'
+      , audio = 'audio'
+      , video = 'video'
       , poster = 'poster'
       , active = 'cue-active'
       , inactive = 'cue-inactive'
@@ -49,59 +39,7 @@
       , pause = '| |'
       , rseek = '&#9658;&#9658;|'
       , lseek = '|&#9668;&#9668;'
-      
-      , supported = (function() {
-
-            // developer.mozilla.org/en-US/docs/DOM/HTMLMediaElement
-            // developer.mozilla.org/en-US/docs/Media_formats_supported_by_the_audio_and_video_elements
-            // github.com/Modernizr/Modernizr/blob/master/feature-detects/audio.js
-            // github.com/Modernizr/Modernizr/blob/master/feature-detects/video.js
-
-            var supported = {}
-              , canPlayType = 'canPlayType' 
-              , el, name, type, test, i, o
-              , keys = [audio, video] // outer
-              , types = {
-                    'audio': {
-                        'm4a' : ['audio/x-m4a;', 'audio/aac;']
-                      , 'wav' : ['audio/mpeg;']
-                      , 'ogg' : ['audio/ogg;codecs="vorbis"']
-                      , 'mp3' : ['audio/mpeg;']
-                     }
-                  , 'video': {
-                        'ogg' : ['video/ogg;codecs="theora"']
-                      , 'webm': ['video/webm;codecs="vp8, vorbis"']
-                      , 'mp4' : ['video/mp4;codecs="avc1.42E01E"']
-                    }
-                };
-    
-            // Make an array for each tagName that contains a prioritized list of 
-            // the supported extensions. And add flags on the array for each type.
-            // The flag will be "probably"|"maybe"|false and the array will contain
-            // only types that are "probably" or "maybe" (in that order).
-            while (name = keys.pop()) {
-                el = document.createElement(name);
-                supported[name] = [];
-                if (el[canPlayType]) {
-                    o = types[name];
-                    for (type in o) {
-                        if (!o.hasOwnProperty(type)) { break; } // owned props enumerate 1st
-                        i = o[type].length; // m4a has 2 tests and the rest have 1
-                        while (i--) {
-                            test = el[canPlayType](o[type][i]);
-                            if (supported[name][type] = !!test && 'no' !== test && test) {// <== string|false
-                                supported[name]['maybe' === test ? 'push' : 'unshift'](type);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return supported;
-      
-        }())
-    
+      , controls = 'controls'
       , controlsClass = 'cue-' + controls
       , controlsHtml = '<div class=' + controlsClass + '>' +
             // wrap shapes in spans so that css image replacement is possible
@@ -112,91 +50,115 @@
             '<output class=cue-time></output>'                         + 
             //'<input class=cue-needle type=range min=0 max=100 step=1 value=100>'  + 
         '</div>'
-      , $controls;
+      , support = deduce([audio, video], function(name, i) {
+            // developer.mozilla.org/en-US/docs/DOM/HTMLMediaElement
+            // developer.mozilla.org/en-US/docs/Media_formats_supported_by_the_audio_and_video_elements
+            // github.com/Modernizr/Modernizr/blob/master/feature-detects/audio.js
+            // github.com/Modernizr/Modernizr/blob/master/feature-detects/video.js
+            var ext
+              , arr = this[name] = []
+              , el = document.createElement(name)
+              , types = i ? {
+                'ogg': ['ogg;codecs="theora"']
+              , 'webm': ['webm;codecs="vp8,vorbis"']
+              , 'mp4': ['mp4;codecs="avc1.42E01E"']
+            } : {
+                'm4a': ['aac;', 'x-m4a;']
+              , 'wav': ['mpeg;']
+              , 'ogg': ['ogg;codecs="vorbis"']
+              , 'opus': ['ogg;codecs="opus"']
+              , 'mp3': ['mpeg;']
+            };
+            if (el.canPlayType) {
+                name += '/';
+                for (ext in types) {
+                    types.hasOwnProperty(ext) && deduce(types[ext], function(type) {
+                        var can = el.canPlayType(name + type);
+                        if (arr[ext] = 'no' !== can && can || false) // Assign string|false.
+                            return arr['maybe' === can ? 'push' : 'unshift'](ext); // Stop loop.
+                    });
+                }
+            }
+            return i && this;
+        }, {});
+
+    /**
+     * hybrid iterator blends _.some, _.detect, and _.reduce
+     * @param  {Object|Array|NodeList} ob
+     * @param  {Function}              fn
+     * @param  {*=}                    scope
+     */    
+    function deduce(ob, fn, scope) {
+        for (var r, i = 0, l = ob.length; i < l;) {
+            if (r = fn.call(scope, ob[i], i++, ob)) return r;
+        }
+    }
       
     /**
      * Convert seconds to HH:MM:SS:FF
      * @param   {number}           seconds
      * @param   {string|boolean=}  glue
-     * @return  {string}
+     * @return  {string|Array}
      */
     function formatTime(seconds, glue) {
-
         seconds = seconds || 0;
         var minutes = seconds / 60
           , hours = minutes / 60
           , frames = 60 * seconds
           , result; 
-        
+
         // bit.ly/arithmetic-operators
         hours   = hours.toFixed();
         minutes = (minutes % 60).toFixed();
         seconds = (seconds % 60).toFixed();
         frames  = (frames % 60).toFixed();
-        
-        result = [hours, minutes, seconds, frames];
-        if (glue === false) { return result; }
-        result = result.join(glue || ' : ');
 
-        // add leading zero to single digits
-        return result.replace(singleDigits, '$10$2'); 
+        result = [hours, minutes, seconds, frames];
+        if (glue === false) return result;
+        result = result.join(glue || ' : ');
+        return result.replace(singleDigits, '$10$2'); // Add leading zero to single digits.
     }
 
-    // inlined @ minification
+    // inline @ minification
     function namespace(eventName) {
         return eventName + '.cue';
     }
     
-    // inlined @ minification
+    // inline @ minification
     function isPaused(media) {
         return media.paused || media.ended;
     }
+    
+    /**
+     * @param  {Node|string} el
+     */
+    function toTagName(el) {
+        return (el.nodeName || el).toLowerCase();
+    }
 
     /**
-     * @param {Object}         uris     plain object containing source uris by type
-     * @param {Object|string}  elem     DOM element or tagName ("audio" or "video")
-     * @uses  the `supported` feature detection object defined above
+     * @param {Object}  uris  plain object containing source uris by type
+     * @param {string}  name  "audio" or "video"
      */
-    function getBestType(uris, elem) {
-        var uri
-          , types = supported[(elem.nodeType ? elem.tagName : elem).toLowerCase()]
-          , l = types.length
-          , i = 0;
-
-        while (i < l) {
-            if (uri = uris[types[i++]]) {
-                return uri;
-            }
-        }
-        return ''; // default
+    function getBestType(uris, name) {
+        return deduce(support[name], function(type) {
+            return uris[type];
+        }) || '';
     }
     
     /**
-     * ess     "each separated string"         Designed for iterating separated values. 
-     *                                         Defaults to SSV. Skips falsey values.
-     * @param   {Array|Object|string|*} list   is an ssv string, array, or arr-like object to iterate
-     * @param   {(Function|*)=}         fn     is the callback - it receives (value, index, array)
-     * @param   {(RegExp|string|*)=}    delim  is a delimiter to split strings with (defaults to ssv)
-     * @return  {Array}                        new compact array containing the split values
+     * @param  {Array|Object|string|*} list  is an ssv string, array, or arr-like object
+     * @return {Array}                       new compact array containing the split values
      */
-    function ess(list, fn, delim) {// or `ess(list, delim)` or `ess(list)`
-        var l, v, j, i = 0, comp = [];
-        if (!list) { return comp; }
-        typeof fn != 'function' && null == delim && (delim = fn) && (fn = 0);
-        list = typeof list == 'string' ? list.split(delim || ' ') : list;
-        l = list.length;
-        while (i < l) {
-            if (v = list[i++]) {// Skip falsey values.
-                // Send j/comp rather than i/list to enaable `fn` to mutate `comp`
-                // It's like: `list.filter(function(v){ return !!v; }).forEach(fn)`
-                // If you need custom scope then use: `ess(list).forEach(fn, scope)`
-                j = comp.push(v) - 1;
-                fn && fn.call(v, v, j, comp);
-            }
-        }
+    function compact(list) {
+        var l, i = 0, comp = [];
+        if (!list) return comp;
+        list = typeof list == 'string' ? list.split(' ') : list;
+        for (l = list.length; i < l; i++)
+            list[i] && comp.push(list[i]);
         return comp;
     }
-    
+
     /**
      * If the value is null, remove the attribute. Otherwise set it.
      * @param  {Object}  node
@@ -212,67 +174,44 @@
      * @param  {string|*}     raw       JSON or filename of JSON file
      * @param  {Function=}    fn        Callback for ajax-loaded data.
      * @param  {Object=}      scope     thisArg passed to `fn`
-     * @return {Object|undefined}
      */
     function json(raw, fn, scope) {
         var object, ext = 'json';
         raw = typeof raw == 'function' ? raw.call(this) : raw;
-        if (!raw) { return; }
-        if (typeof raw != 'string') { return raw; }
-        if (!(raw = $.trim(raw))) { return; }
-        
+        if (!raw) return;
+        if (typeof raw != 'string') return raw;
+        if (!(raw = trim(raw))) return;
         raw.substr(-5) === ('.' + ext) ? $.get(raw, function(data) {
-            // asynchronous ==> call effinCue when data arrives
+            // Asynchronous ==> call effinCue when data arrives
             data && fn.call(scope, data);
-        }, ext) : (object = parseJSON(raw)); 
-
-        return object; // undefined if using $.get
+        }, ext) : (object = parseJson(raw)); 
+        return object; // Undefined if using $.get
     }
-    
+
     /**
-     * Inserts the markup for the custom controls.
-     * The corresponding events are added elsewhere.
+     * Insert the custom $controls markup. Corresponding events are added elsewhere.
      */
     function insertControls($container, $media) {
-
-        $media.each(function() {
-            var currControls, media = this;
-        
-            // quasi-respect the behavior of [controls]
-            // (only add them if [controls] is present)
-            if (null == media.getAttribute(controls)) {
-                return;
-            }
-            
-            // Abort if there's already a controls element.
-            if ($container.find('.' + controlsClass).length) { 
-                return; 
-            }
-            
-            // Remove native [controls] b/c we have custom controls
-            media.removeAttribute(controls);
-            
-            $container.children().each(function() {
-                if (this === media || $.contains(this, media)) {
+        deduce($media, function(media) {
+            if (null == media.getAttribute(controls)) return; // Abort if [controls] is not present.
+            if ($container.find('.' + controlsClass).length) return; // Or if we already added them.
+            media.removeAttribute(controls); // Remove native [controls] b/c we have custom controls.
+            deduce($container.children(), function(kid) {
+                if (kid === media || $.contains(kid, media)) {
                     $controls = $controls || $(controlsHtml);
-                    return ! $controls.insertAfter(this); // break
+                    $controls.insertAfter(kid);
+                    return 1;
                 }
             });
-        });            
+        });
     }
     
     /**
      *
      */
     function changeTrack(container, nodeList, media, tagName, playlist, amount) {
-            
         amount = amount || 0;
-
-        var curr = media.currentSrc
-          , ext, i = 0, idx = 0
-          , next = null
-          , l = playlist.length;
-          
+        var next, ext, curr = media.currentSrc, i = 0, idx = 0, l = playlist.length;
         if (curr) {
             for (ext = curr.split('.').pop() || 'src'; i < l; i++) {
                 if (playlist[i] && playlist[i][ext] === curr) {
@@ -286,14 +225,9 @@
             idx = amount < 0 ? l - 1 : 0; // last or first
             next = playlist[idx]; // playlist object
         }
-
         media['src'] = next[ext] || ''; // set the attr
         container.setAttribute('data-cue-idx', idx);
-
-        if (video === tagName) {
-            updateAttr(media, poster, next[poster]);
-        }
-        
+        video === tagName && updateAttr(media, poster, next[poster]);
         media.play();
 
         // Update fields. - for example:  `<p data-cue-insert="caption"></p>`
@@ -302,30 +236,21 @@
         // live nodeList created by getElementsByTagName('*') rather than
         // using .find(selector) each time for better performance.
         // <p data-cue-attr='{"title":"title"}'>
-        each(nodeList, function() {
-        
-            var n, key, attrs, insert, node = this;
-            if (!node || 1 !== node.nodeType) { return; }
+        deduce(nodeList, function(node) {
+            var n, atts, insert;
+            if (!node || 1 !== node.nodeType) return;
             insert = node.getAttribute(cueInsert);
-            attrs  = node.getAttribute(cueAttr);
-            
-            if (null != insert) {
-                insert = next[insert];
-                null == insert ? $(node).empty() : $(node).html(insert);
-            }
-            
-            if (attrs && typeof attrs == 'string') {
-                attrs = parseJSON(attrs);
-                for (n in attrs) {
-                    if (!attrs.hasOwnProperty(n)) { break; }
-                    (key = attrs[n]) && typeof key == 'string' && updateAttr(node, n, next[key]);
+            atts = node.getAttribute(cueAttr);
+            null == insert || (null == (insert = next[insert]) ? $(node).empty() : $(node).html(insert));
+            if (atts = atts && typeof atts == 'string' && parseJson(atts)) {
+                for (n in atts) {
+                    if (typeof atts[n] == 'string' || typeof atts[n] == 'number') {
+                        updateAttr(node, n, next[atts[n]]);
+                    }
                 }
             }
-            
         });
-        
         return idx;
-
     }
     
     function addMarkedEvent($container, sel, type, fn) {
@@ -333,7 +258,9 @@
         // and prevent adding it again if $.fn.cue is called twice on the same elem.
         var boolAttr = 'data-' + type + '-cue', object = {};
         object[boolAttr] = '';
-        return $container.find(sel).not('[' + boolAttr + ']').on(namespace(type), fn).attr(object).removeClass(inactive).addClass(active);
+        return ($container.find(sel).not('[' + boolAttr + ']')
+            .on(namespace(type), fn).attr(object)
+            .removeClass(inactive).addClass(active));
     }
     
     function activateTimeUpdate($container, $media) {
@@ -342,55 +269,48 @@
             $time.html(formatTime(this.currentTime));
         }).addClass(active).removeClass(inactive);
     }
+    
+    /**
+     * @this {Object} cue item
+     */
+    function setExtensionProps(v, x) {
+        // Repurpose index `x` to grab extension.
+        this[x = v.split('.').pop()] || (this[x] = v);
+    }
 
     /**
      * $.fn.cue()
-     * @param {(Object|string)=}  inputData
+     * @param {(Object|Function|string)=}  inputData
      */
     function effinCue(inputData) {
-    
-        // Use `$.each` rather than `this.each` so that
-        // effinCue can be .called w/ a plain array:
+        deduce(this, function(container) {
+            if (1 !== container.nodeType) return;
+            if (typeof inputData == 'function')
+                // Ensure that inputData is not a function for JSON, and allow devs to customize
+                // data at runtime. (Maybe this would be more useful to add event capabilities.)
+                return !effinCue.call([container], inputData.call(container)); // Invert to continue loop.
 
-        return each(this, function() {
-            
-            if (1 !== this.nodeType) { return; }
-
-            if (typeof inputData == 'function') {
-                // ensures that inputData is not a function below for
-                // json and allows devs to customize data at runtime
-                // but maybe this would be more useful to add event capabilities
-                return effinCue.call([this], inputData.call(this));
-            }
-            
-            var $media, media, nodeList, tagName, srcs, ext, j, i, cue
-              , $container = $(this);
-
+            var $media, media, nodeList, tagName, i, cue, $container = $(container);
             cue = inputData || $container.attr('data-cue');
-            if (!cue) { return; }
+            if (!cue) return;
             cue = json(cue, effinCue, $container);
-            if (typeof cue != 'object') { return; } // async OR junk input
+            if (typeof cue != 'object') return; // Async, or junk input
             cue = cue ? [].concat(cue) : [];
             
             // get the first video or audio elem (ensure $media.length === 1)
             media = $container.find(video + ',' + audio)[0];
-            if (!media) { return; }
-            tagName = media.tagName.toLowerCase();
+            if (!media) return;
+            tagName = toTagName(media);
             $media = $(media);
-            
             insertControls($container, $media);
-            
             activateTimeUpdate($container, $media);
     
-            function playPause (eventData) {
-                var paused = isPaused(media)
-                  , rem = 'removeClass'
-                  , add = 'addClass';
-
+            function playPause() {
+                var paused = isPaused(media), rem = 'removeClass', add = 'addClass';
                 this.className = 'cue-' + (paused ? 'pause' : 'play');
                 $container[paused ? add : rem](cuePlaying)[paused ? rem : add](cuePaused);
             }
-            
+
             addMarkedEvent($container, '.cue-play,.cue-pause', 'click', function() {
                 media[isPaused(media) ? 'play' : 'pause']();
             });
@@ -402,57 +322,35 @@
                 while (i--) {
                     // Add track number prop for use with [data-cue-insert]
                     cue[i]['track-number'] = i;
+
+                    // Check for multiple 'src' values and set props for each unique type. 
+                    deduce(compact(cue[i]['src']), setExtensionProps, cue[i]);
                     
-                    // Check for multiple src values and set props for each 
-                    // unique type. Reset src in the process to ensure it 
-                    // is string|undefined for fallback usage in getBestType.
-                    if (srcs = cue[i]['src']) {
-                        srcs = typeof srcs == 'string' ? srcs.split(' ') : srcs;
-                        for (j = srcs.length; j--; ) {
-                            srcs[j] && (ext = srcs[j].split('.').pop()) && (cue[i][ext] = cue[i][ext] || srcs[j]);
-                        }
-                        srcs = srcs[0];
-                    }
-                    
-                    // if the 'src' is set then organize by type
-                    // 'src' can be an ssv string or an array here
-                    ess(cue[i]['src'], function(v) {
-                        var ext = v.split('.').pop();
-                        cue[i][ext] = cue[i][ext] || v;
-                    });
-                    
-                    // save the best type back to the 'src' prop
+                    // Save the best type back to the 'src' prop
                     cue[i]['src'] = getBestType(cue[i], tagName);
                 }
                 
-                // live reference to all elements in container
-                nodeList = this.getElementsByTagName('*'); 
+                // Get live reference to all elements in container
+                nodeList = container.getElementsByTagName('*'); 
                 
-                // attach the changeTrack handlers
-                addMarkedEvent($container, '.cue-next', 'click', function(eventData) {
-                    changeTrack($container[0], nodeList, media, tagName, cue, 1);
+                // Attach the changeTrack handlers
+                deduce(['.cue-prev', '.cue-next'], function(selector, i) {
+                    addMarkedEvent($container, selector, 'click', function() {
+                        changeTrack(container, nodeList, media, tagName, cue, i || -1);
+                    });
                 });
-
-                addMarkedEvent($container, '.cue-prev', 'click', function(eventData) {
-                    changeTrack($container[0], nodeList, media, tagName, cue, -1);
-                });
-
             } else {
                 // Ensure that the attr is exactly empty for css purposes
                 // using [data-cue=""] to dim or hide the prev/next buttons
                 $container.attr('data-cue', '');
             }
-
         });
-    }//effinCue
-    // public method allows for initialization of ajax content
-    $['fn']['cue'] = effinCue;
+        return this;
+    }
+    $['fn']['cue'] = effinCue; // Public method allows for initialization of AJAX content.
     
-    // initialize
+    // Initialize
     $(document).ready(function() {
-        // same as $('[data-cue]').cue() 
-        // but use local in case public prop is overwritten before this is called  
-        effinCue.call($('[data-cue]'));
+        effinCue.call($('[data-cue]')); // Use local in case public prop changes.
     });
-
-}(this, document));
+}(this, window, document));

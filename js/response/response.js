@@ -3,10 +3,9 @@
  * @link      http://responsejs.com
  * @author    Ryan Van Etten (c) 2011-2012
  * @license   MIT
- * @version   0.7.5
+ * @version   0.7.8
  * @requires  jQuery 1.7+
- *            -or- Jeesh (ender.no.de/#jeesh)
- *            -or- elo (github.com/ryanve/elo)
+ *            -or- ender build jeesh (ender.jit.su)
  *            -or- zepto 0.8+ (zeptojs.com)
  */
 
@@ -15,7 +14,7 @@
 , regexp: true, undef: true, sloppy: true, stupid: true, sub: true, vars: true, white: true
 , indent: 4, maxerr: 180 */
 
-(function ( root, name, factory ) {// github.com/umdjs/umd
+(function(root, name, factory) {// github.com/umdjs/umd
 
     var dep = root['jQuery'] || root['Zepto'] || root['ender'] || root['elo'];
     if ( typeof module != 'undefined' && module['exports'] ) {
@@ -25,9 +24,9 @@
     // see @link github.com/ryanve/response.js/pull/9
     // AMD @example `define(['jquery'], factory)`
     
-}(this, 'Response', function ($) {
+}(this, 'Response', function($) {
 
-    if ( typeof $ != 'function' ) {
+    if (typeof $ != 'function') {
         try {// Exit gracefully if dependency is missing:
             console.log('Response was unable to run due to missing dependency.');
         } catch (e) {}
@@ -35,8 +34,8 @@
 
     // Combine local vars/funcs into one statement:    
 
-    var root = this
-      , Response
+    var Response
+      , root = this
       , name = 'Response'
       , old = root[name]
       , initContentKey = 'init' + name  // key for storing initial content
@@ -46,18 +45,14 @@
       , ready = $.domReady || $
       , $win = $(win) // cache selector
       , screen = win.screen
-      , isArray = Array.isArray || function(ukn) { return ukn instanceof Array; }
-      , owns = {}.hasOwnProperty
-      , slice = [].slice
-      , concat = [].concat
-      , nativeMap = [].map
-
-      , map = nativeMap ? function(ob, fn, scope) {
-            return nativeMap.call(ob, fn, scope);
-        } : function (ob, fn, scope) {
-            var i, l = ob.length, ret = [];
-            for (i = 0; i < l; i++) { i in ob && (ret[i] = fn.call(scope, ob[i], i, ob)); }
-            return ret;
+      , AP = Array.prototype
+      , OP = Object.prototype
+      , slice = AP.slice
+      , concat = AP.concat
+      , toString = OP.toString
+      , owns = OP.hasOwnProperty
+      , isArray = Array.isArray || function(item) {
+            return '[object Array]' === toString.call(item);
         }
 
       , defaultBreakpoints = {
@@ -95,10 +90,11 @@
         // FYI there is a full polyfill @link github.com/kriskowal/es5-shim
         // This gets exposed as Response.object since 0.4.0
 
-      , objectCreate = Object.create || function (proto) {
-            function Type () {}      // Function to output empty object.
-            Type.prototype = proto;  // Set prototype property to the proto.
-            return new Type();       // Instantiate the new object.
+      , objectCreate = Object.create || function(proto) {
+            /** @constructor */
+            function Type() {}      // Function to output empty object.
+            Type.prototype = proto; // Set prototype property to the proto.
+            return new Type;        // Instantiate the new object.
         }
 
       , namespaceIt = function(eventName, customNamespace) {// namepace defaults to 'Response'
@@ -117,26 +113,26 @@
         // If both versions are undefined, .matches will equal undefined 
         // Also see: band / wave / device.band / device.wave / dpr
       , matchMedia = win.matchMedia || win.msMatchMedia
-      , media = matchMedia || function () { return {}; }
+      , media = matchMedia || function() { return {}; }
     
         // @link responsejs.com/labs/dimensions/#viewport    
         // @link github.com/ryanve/response.js/issues/17
     
-      , viewportW = (function (win, docElem, mM) {
+      , viewportW = (function(win, docElem, mM) {
             var client = docElem['clientWidth']
               , inner = win['innerWidth'];
             return ( mM && client < inner && true === mM('(min-width:' + inner + 'px)')['matches']
-                ? function () { return win['innerWidth']; }
-                : function () { return docElem['clientWidth']; }
+                ? function() { return win['innerWidth']; }
+                : function() { return docElem['clientWidth']; }
             );
         }(win, docElem, matchMedia))
         
-      , viewportH = (function (win, docElem, mM) {
+      , viewportH = (function(win, docElem, mM) {
             var client = docElem['clientHeight']
               , inner = win['innerHeight'];
             return ( mM && client < inner && true === mM('(min-height:' + inner + 'px)')['matches']
-                ? function () { return win['innerHeight']; }
-                : function () { return docElem['clientHeight']; }
+                ? function() { return win['innerHeight']; }
+                : function() { return docElem['clientHeight']; }
             );
         }(win, docElem, matchMedia))
 
@@ -148,8 +144,16 @@
         throw new TypeError(msg ? name + '.' + msg : name);
     }
     
-    function isNumber (item) {// inlined @minification
+    function isNumber(item) {// inlined @minification
         return typeof item == 'number' && item === item; // second part stuffs NaN
+    }
+    
+    function map(ob, fn, scope) {
+        var i, l = ob.length, ret = [];
+        for (i = 0; i < l; i++) {
+            ret[i] = fn.call(scope, ob[i], i, ob);
+        }
+        return ret;
     }
 
     function ssvToArr(ukn) {
@@ -160,14 +164,15 @@
     /**
      * Response.each()
      * @since    0.4.0
-     * Since version 0.6.2, this function omits checking `i in arr` and supports scope
+     * omits `in` check and supports scope since 0.6.2
      */
-
     function each(ob, callback, scope) {
         if ( null == ob ) { return ob; }
         var i = 0, len = ob.length;
-        while ( i < len ) { callback.call(scope || ob[i], ob[i], i++, ob); }
-        return ob; // chainable
+        while ( i < len ) { 
+            callback.call(scope || ob[i], ob[i], i++, ob); 
+        }
+        return ob; // chain
     }
 
     // revamped affix method reintroduced in version 0.4.0:
@@ -201,7 +206,6 @@
      * @example Response.sift([5, 0, '', undefined, null])  // [5]
      *
      */
-
     function sift(ob, fn, scope) {
 
         var l, u = 0, i = 0, v, ret = [], invert, isF = typeof fn == 'function';
@@ -226,18 +230,14 @@
      * @param   {Object|Array|Function|*}  base
      * @param   {Object|Array|Function|*}  adds
      */
-
-    function merge (base, adds) {
-        if ( !base || !adds) { return base; }
-        var k, l = adds.length;
-
-        if ( typeof adds != 'function' && isNumber(l) ) {
+    function merge(base, adds) {
+        var k, l;
+        if ( !base || !adds ) { return base; }
+        if ( typeof adds != 'function' && isNumber(l = adds.length) ) {
             for ( k = 0; k < l; k++ ) {
                 void 0 === adds[k] || (base[k] = adds[k]);
             }
-            if ( !(base.length > k) ) { 
-                base.length = k; // in case `base` was not array
-            } 
+            base.length > k || (base.length = k); // non-arrays
         } else {
             for ( k in adds ) {
                 owns.call(adds, k) && void 0 !== adds[k] && (base[k] = adds[k]);
@@ -257,7 +257,6 @@
      * @param   {Function}  fn      The function to call on item(s).
      * @param   {*=}        scope   thisArg (defaults to current item)
      */
-
     function route(item, fn, scope) {
         // If item is array-like then call the callback on each item. Otherwise call directly on item.
         if ( null == item ) { return item; } // Skip null|undefined
@@ -269,15 +268,20 @@
         return item; // chainable
     }
 
-    // Handler for defining range comparison booleans:
+    /**
+     * ranger()                Make a range comparison tester.
+     * @param  {Function}  fn  gets a value to compare against
+     * @return {Function}
+     */        
     function ranger(fn) {
-        // In previous versions we used inORout() for this but this
-        // is better because the resulting functions are faster
-        // because they don't require an extra function call.
+        /**
+         * @param {string|number}    min
+         * @param {(string|number)=} max
+         */
         return function(min, max) {
-            var bool, curr = fn();
-            bool = curr >= (min || 0);
-            return !max ? bool : bool && curr <= max;        
+            var n = fn();
+            min = n >= (min || 0);
+            return max ? min && n <= max : min;        
         };
     }
 
@@ -293,18 +297,12 @@
     /**
      * Response.dpr(decimal)         Tests if a minimum device pixel ratio is active. 
      *                               Or (version added in 0.3.0) returns the device-pixel-ratio
-     *
-     *
      * @param    number    decimal   is the integer or float to test.
-     *
      * @return   boolean|number
      * @example  Response.dpr();     // get the device-pixel-ratio (or 0 if undetectable)
      * @example  Response.dpr(1.5);  // true when device-pixel-ratio is 1.5+
      * @example  Response.dpr(2);    // true when device-pixel-ratio is 2+
-     * @example  Response.dpr(3/2);  // [!] FAIL (Gotta be a decimal or integer)
-     *
      */
-
     function dpr(decimal) {
 
         var dPR = win.devicePixelRatio;
@@ -333,8 +331,7 @@
         decimal = 'only all and (min--moz-device-pixel-ratio:' + decimal + ')';
         if ( media(decimal).matches ) { return true; }
         return !!media(decimal.replace('-moz-', '')).matches;
-
-    }//dpr
+    }
 
 
     /**
@@ -344,10 +341,9 @@
      *
      * @example   Response.camelize('data-casa-blanca')  // casaBlanca
      */
-
     function camelize(s) {
         // Remove data- prefix and convert remaining dashed string to camelCase:
-        return s.replace(regexDataPrefix, '$1').replace(regexDashB4, function (m, m1) {
+        return s.replace(regexDataPrefix, '$1').replace(regexDashB4, function(m, m1) {
             return m1.toUpperCase();
         });
     }
@@ -359,7 +355,6 @@
      *
      * @example   Response.datatize('casaBlanca')  // data-casa-blanca
      */
-
     function datatize(s) {
         // Make sure there's no data- already in s for it to work right in IE8.
         return 'data-' + (s ? s.replace(regexDataPrefix, '$1').replace(regexCamels, '$1-$2').toLowerCase() : s);
@@ -375,7 +370,6 @@
      * @return  converted data
      *
      */
-
     function render(s) {
         var n; // < undefined
         return ( !s || typeof s != 'string' ? s              // unchanged
@@ -386,7 +380,7 @@
                         : (n = parseFloat(s)) === +n ? n     // convert "1000" to 1000
                         : s                                  // unchanged
         );
-    }//render
+    }
     
     // Isolate native element:
     function getNative(e) {
@@ -418,7 +412,6 @@
      *                  Response.deletes(elem, keys)              // delete attrs (space-separated string)
      * 
      */
-
     function datasetChainable(key, value) {
 
         var numOfArgs = arguments.length
@@ -436,8 +429,6 @@
     
             if ( typeof key === 'string' ) {
 
-                // key || doError('dataset @key'); // Make sure key is not an empty string.
-
                 key = datatize(key);
 
                 if ( 1 === numOfArgs ) {//GET
@@ -447,23 +438,16 @@
 
                 if ( this === elem || 2 > (n = this.length || 1) ) {//SET single elem
                     elem.setAttribute(key, value);
-                }
-
-                else {//SET for group of selected elems
+                } else {//SET for group of selected elems
                     while( n-- ) {// n starts as # of elems in selector and stops at 0
                         if (n in this) {
                             datasetChainable.apply(this[n], arguments);
                         }
                     }
                 }
-            }
-
-            else if ( key instanceof Object ) {//SET
-                // Plain object containing key/value pairs:
+            } else if ( key instanceof Object ) {//SET
                 for (n in key) {
-                    if (key.hasOwnProperty(n)) {
-                        datasetChainable.call(this, n, key[n]);
-                    }
+                    key.hasOwnProperty(n) && datasetChainable.call(this, n, key[n]);
                 }
             }
                 
@@ -488,31 +472,13 @@
 
         return ret; // plain object
 
-    }//datasetChainable
+    }
         
     /**
      * .deletes()
-     * 
-     *
      * @since 0.3.0
      */
-         
     function deletesChainable(keys) {
-    
-        // Could make this take a little less code using sending the space-separated string 
-        // straight to removeAttr but Zepto's removeAttr doesn't support space-separated keys
-        // it'd have to be like:
-
-        /* if ( 'string' === typeof keys ) {
-            var $elems = selectOnce(this);
-            each(ssvToArr(keys), function(key) {
-                if (key) {
-                    $elems.removeAttr(datatize(key)); 
-                }
-            });
-        }*/
-        // Or, just use native removeAttribute:
-        
         if (this && typeof keys === 'string') {
             keys = ssvToArr(keys);
             route(this, function(el) {
@@ -523,9 +489,8 @@
                 });
             });
         }
-
         return this;
-    }//deletesChainable
+    }
 
     /**
      * Response.dataset()        See datasetChainable above
@@ -534,7 +499,6 @@
      *
      * @since 0.3.0
      */
-
     function dataset(elem, key, value) {
         return datasetChainable.apply(elem, slice.call(arguments, 1));
     }
@@ -556,7 +520,6 @@
      * @example  Response.deletes($(div), 'casaBlanca movie')         // Removes data-casa-blanca and data-movie
      *                                                                // from all divs.
      */
-
     function deletes(elem, keys) {
         return deletesChainable.call(elem, keys);
     }
@@ -569,9 +532,7 @@
         // @link github.com/jquery/sizzle/issues/76
         var k, r = [], i = 0, l = keys.length;
         while ( i < l ) {
-            if ( k = keys[i++] ) {
-                r.push('[' + datatize(k.replace(regexTrimPunc, '').replace('.', '\\.')) + ']');
-            }
+            (k = keys[i++]) && r.push('[' + datatize(k.replace(regexTrimPunc, '').replace('.', '\\.')) + ']');
         }
         return r.join();
     }
@@ -585,7 +546,6 @@
      * @example  Response.target(['a', 'b', 'c'])  //  $('[data-a],[data-b],[data-c]')
      * @example  Response.target('a b c'])         //  $('[data-a],[data-b],[data-c]')
      */
-    
     function target(keys) {
         return $(selectify(ssvToArr(keys)));    
     }
@@ -598,38 +558,26 @@
 
     /** 
      * Response.scrollX()     Cross-browser version of window.scrollX
-     *
      * @since   0.3.0
      * @return  integer
      */
-     
-    function scrollX(){
+    function scrollX() {
         return window.pageXOffset || docElem.scrollLeft; 
     }
 
     /** 
      * Response.scrollY()     Cross-browser version of window.scrollY
-     *                       
      * @since   0.3.0
      * @return  integer
      */
-
-    function scrollY(){ 
+    function scrollY() { 
         return window.pageYOffset || docElem.scrollTop; 
     }
 
     /**
      * area methods inX/inY/inViewport
-     * 
-     * In non-chainable contexts, these are booleans.
-     * In chainable contexts, they are filters.
-     *
      * @since   0.3.0
-     *
-     * Inspired by @link appelsiini.net/projects/viewport
-     *
      */
-
     function rectangle(el, verge) {
         // Local handler for area methods:
         // adapted from github.com/ryanve/dime
@@ -673,24 +621,16 @@
     function detectMode(elem) {
 
         // Detect whether elem should act in src or markup mode.
-        //
-        // @param   elem      is a native dom element
-        // @return  boolean   true (src mode) or false (markup mode) depending on whether there is a
-        //                     src attr *and* whether the spec allows it on the elem in question.
-        //
+        // @param   elem      is a DOM element
+        // @return  number
         // @link dev.w3.org/html5/spec-author-view/index.html#attributes-1
-        // @link stackoverflow.com/questions/8715689/check-if-element-legally-supports-the-src-attribute-or-innerhtml
-        //
-        // In jQuery you can also use $(elem).prop('tagName') to get the tagName. 
-        // This uses developer.mozilla.org/en/DOM/element.tagName
-        //
-        // In HTML5, element.tagName returns the tagName in uppercase.
-        // We force the case here to make it compatible with XHTML.
+        // @link stackoverflow.com/q/8715689/770127
+        // @link stackoverflow.com/a/4878963/770127
+        // Normalize to lowercase to ensure compatibility across HTML/XHTML/XML.
         // These are the elems that can use src attr per the W3 spec:
             
-        var srcElems = {img:1, input:1, source:3, embed:3, track:3, iframe:5, audio:5, video:5, script:5}
-          , modeID = srcElems[elem.tagName.toLowerCase()] || -1
-        ;
+        var srcElems = { img:1, input:1, source:3, embed:3, track:3, iframe:5, audio:5, video:5, script:5 }
+          , modeID = srcElems[ elem.nodeName.toLowerCase() ] || -1;
 
         // -5 => markup mode for video/audio/iframe w/o src attr.
         // -1 => markup mode for any elem not in the array above.
@@ -699,10 +639,10 @@
         //  5 => src mode    for audio/video/iframe/script *with* src attr.
         //  If we at some point we need to differentiate <track> we'll use 4, but for now
         //  it's grouped with the other non-image empty content elems that use src.
-        //  hasAttribute is not supported in IE7 so check typeof elem.getAttribute('src')
+        //  hasAttribute is not supported in IE7 so check elem.getAttribute('src')
 
-        return 4 > modeID ? modeID : typeof elem.getAttribute('src') === 'string' ? 5 : -5; // integer
-    }//detectMode
+        return 4 > modeID ? modeID : null != elem.getAttribute('src') ? 5 : -5;
+    }
 
     /**
      * Response.store()
@@ -717,14 +657,13 @@
      * @param  {string=} source  (@since 0.6.2) an optional attribute name to read data from
      *
      */
-
     function store($elems, key, source) {
     
         var valToStore;
         if ( !$elems || null == key) { doError('store'); }
         source = typeof source == 'string' && source;
 
-        route($elems, function (el) {
+        route($elems, function(el) {
             if ( source ) { valToStore = el.getAttribute(source); }
             else if ( 0 < detectMode(el) ) { valToStore = el.getAttribute('src'); }
             else { valToStore = el.innerHTML; }
@@ -732,7 +671,7 @@
         });
 
         return Response;
-    }//store
+    }
 
     /**
      * Response.access()               Access data-* values for element from an array of data-* keys. 
@@ -746,11 +685,10 @@
      * @return  array                 of dataset values corresponding to each key. Since 0.4.0 if
      *                                the params are wrong then the return is an empty array.
      */
-
     function access(elem, keys) {
         // elem becomes thisArg for datasetChainable:
         var ret = [];
-        elem && keys && each(ssvToArr(keys), function (k, i) {
+        elem && keys && each(ssvToArr(keys), function(k, i) {
             ret.push(dataset(elem, k));
         }, elem);
         return ret;
@@ -760,7 +698,6 @@
      * Response.addTest
      *
      */
-      
     function addTest(prop, fn) {
         if (typeof prop == 'string' && typeof fn == 'function') {
             propTests[prop] = fn;
@@ -811,7 +748,7 @@
           , i: 0                      // integer   the index of the current highest active breakpoint min
           , uid: null
               
-          , reset: function () {// Reset / fire crossover events:
+          , reset: function() {// Reset / fire crossover events:
           
                 var subjects = this.breakpoints
                   , i = subjects.length
@@ -832,7 +769,7 @@
                 return this;           // chainable
             }
 
-          , configure: function (options) {
+          , configure: function(options) {
           
                 merge(this, options);
           
@@ -865,12 +802,12 @@
                 
                 if ( isArray(arr) ) {// custom breakpoints
                             
-                    each(arr, function (v) {
+                    each(arr, function(v) {
                         if ( !v && v !== 0 ) { throw 'invalid breakpoint'; } // null|undefined|''|NaN
                         isNumeric = isNumeric && isFinite(v);
                     });
 
-                    arr = isNumeric ? arr.sort(function (a, b) {
+                    arr = isNumeric ? arr.sort(function(a, b) {
                         return (a - b); // sort lowest to highest
                     }) : arr; 
 
@@ -983,7 +920,6 @@
     // The keys are the prop and the values are the method that tests that prop.
     // The props with dashes in them are added via array notation below.
     // Props marked as dynamic change when the viewport is resized:
-    
     propTests['width'] = band;   // dynamic
     propTests['height'] = wave;  // dynamic
     propTests['device-width'] = device.band;
@@ -992,12 +928,10 @@
     
     /**
      * Response.resize
-     *
      */
-    
     function resize(fn) {
         $win.on('resize', fn);
-        return Response; // chainable
+        return Response; // chain
     }
 
     /**
@@ -1012,9 +946,9 @@
             fn = prop;
             prop = temp;
         }
-        eventToFire = prop ? '' + prop + eventCrossover : eventCrossover;
+        eventToFire = prop ? ('' + prop + eventCrossover) : eventCrossover;
         $win.on(eventToFire, fn);
-        return Response; // chainable
+        return Response; // chain
     }
 
     /**
@@ -1027,13 +961,12 @@
      * @example  Response.action(myFunc1);            // call myFunc1() on ready/resize
      * @example  Response.action([myFunc1, myFunc2]); // call myFunc1(), myFunc2() ...
      */
-         
     function action(fnOrArr) {
-        route(fnOrArr, function (fn) {
+        route(fnOrArr, function(fn) {
             ready(fn);
             resize(fn);
         });
-        return Response; // chainable
+        return Response; // chain
     }
     
     /**
@@ -1052,7 +985,7 @@
 
     function create(args) {
 
-        route(args, function (options) {
+        route(args, function(options) {
 
             typeof options == 'object' || doError('create @args');
 
@@ -1124,7 +1057,7 @@
 
             });//ready
         });//route
-        return Response; // chainable
+        return Response; // chain
     }//create
     
     function noConflict(callback) {
@@ -1145,24 +1078,28 @@
     }
 
     /**
-     * Response.bridge >>>> bridge
-     * Bridges applicable methods into the specified host (e.g. jQuery).
+     * Response.bridge
+     * Bridges applicable methods into the specified host (e.g. jQuery)
+     * @param {Function} host
+     * @param {boolean=} force
      */
-
     function bridge(host, force) {
 
-        if (typeof host == 'function' && host.fn) {
+        if ( typeof host == 'function' && host.fn ) {
 
             // Expose .dataset() and .deletes() to jQuery:
-            if (force || void 0 === host.fn.dataset) { host.fn.dataset = datasetChainable; }
-            if (force || void 0 === host.fn.deletes) { host.fn.deletes = deletesChainable; }
+            if (force || void 0 === host.fn.dataset) { 
+                host.fn.dataset = datasetChainable; 
+            }
+            if (force || void 0 === host.fn.deletes) { 
+                host.fn.deletes = deletesChainable; 
+            }
             
             // Expose .inX() .inY() .inViewport()
             exposeAreaFilters(host, host.fn, force);
-
         }
-        
-        return Response; // chainable
+
+        return Response;
     }
     
     /**
@@ -1221,21 +1158,22 @@
       , viewportW: viewportW
     };// Response
 
-    /**
-     * Initialize
-     */
+    // Initialize
     ready(function() {
         var nativeJSONParse, customData = dataset(doc.body, 'responsejs');
         if ( customData ) {
             nativeJSONParse = !!win.JSON && JSON.parse;
-            if ( nativeJSONParse ) { customData = nativeJSONParse(customData); }
-            else if ( $.parseJSON ) { customData = $.parseJSON(customData); }
-            if ( customData && customData.create ) { create(customData.create); }
+            if ( nativeJSONParse ) {
+                customData = nativeJSONParse(customData); 
+            } else if ( $.parseJSON ) { 
+                customData = $.parseJSON(customData); 
+            }
+            customData && customData.create && create(customData.create);
         }
         // Remove .no-responsejs class from html tag (if it's there) and add .responsejs
         docElem.className = docElem.className.replace(/(^|\s)(no-)?responsejs(\s|$)/, '$1$3') + ' responsejs ';
     });
 
-    return Response;  // Bam!
+    return Response;
 
-})); // closure
+}));

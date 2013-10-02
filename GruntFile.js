@@ -12,11 +12,12 @@ module.exports = function(grunt) {
             'elo': 'elo',
             'ender-js': 'ender',
             'oi': 'oi',
+            'res': 'res',
             'response.js': 'response',
             'scan': 'scan',
             'underscore': 'underscore',
             'verge': 'verge',
-            'vibe': 'vibe'      
+            'vibe': 'vibe'
         };
         
     function createFilesMap(suffix) {

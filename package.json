@@ -1,31 +1,32 @@
 {
-    "name": "airve",
-    "description": "static latest version URIs for development",
-    "version": "0.2.0",
-    "homepage": "https://airve.github.io",
-    "author": "Ryan Van Etten",
-    "keywords": ["cdn"],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/airve/airve.github.io.git"
-    }, 
-    "devDependencies": {
-        "grunt": "~0.4.1",
-        "grunt-contrib-concat": "~0.3.0",
-        "grunt-contrib-uglify": "~0.2.4",
-        "aok": ">=0",
-        "blood": ">=0",
-        "cargo": ">=0",
-        "cmon": ">=0",
-        "dj": ">=0",
-        "dope": ">=0",
-        "elo": ">=0",
-        "ender-js": ">=0",
-        "oi": ">=0",
-        "response.js": ">=0",
-        "scan": ">=0",
-        "underscore": ">=0",
-        "verge": ">=0",
-        "vibe": ">=0"
-    }
+  "name": "airve",
+  "description": "static latest version URIs for development",
+  "version": "0.2.1",
+  "homepage": "https://airve.github.io",
+  "author": "Ryan Van Etten",
+  "keywords": ["cdn", "development"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/airve/airve.github.io.git"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.4",
+    "aok": "latest",
+    "blood": "latest",
+    "cargo": "latest",
+    "cmon": "latest",
+    "dj": "latest",
+    "dope": "latest",
+    "elo": "latest",
+    "ender-js": "latest",
+    "oi": "latest",
+    "res": "latest",
+    "response.js": "latest",
+    "scan": "latest",
+    "underscore": "latest",
+    "verge": "latest",
+    "vibe": "latest"
+  }
 }

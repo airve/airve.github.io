@@ -1,12 +1,8 @@
 /*!
- * @link        github.com/ryanve/cmon
- * @license     MIT
- * @copyright   2013 Ryan Van Etten
- * @version     0.4.1
+ * cmon 0.5.2+201309031951
+ * https://github.com/ryanve/cmon
+ * MIT License 2013 Ryan Van Etten
  */
-
-/*jshint expr:true, laxcomma:true, supernew:true, debug:true, eqnull:true, node:true, boss:true, evil:true,
-  undef:true, unused:true, sub:true, browser:true, devel:true, jquery:true, indent:4, maxerr:100 */
 
 (function(root, name, make) {
     if (typeof module != 'undefined' && module['exports']) {
@@ -196,20 +192,6 @@
         for (var what, i = 0, l = id.length; i < l;)
             if (what = fn.call(scope, id[i++]), null != what)
                 return what;
-    }
-    
-    /**
-     * @param  {Array|string|number} id
-     * @param  {Function=}           fn
-     * @param  {*=}                  scope
-     */
-    function available(id, fn, scope) {
-        id = [].concat(id);
-        fn = fn || inquire;
-        for (var r = [], i = 0, l = id.length; i < l; i++)
-            if (null == (r[i] = fn.call(scope, id[i])))
-                return false;
-        return r;
     }
     
     /**

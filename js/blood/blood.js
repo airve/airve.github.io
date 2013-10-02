@@ -1,13 +1,8 @@
 /*!
- * blood        inheritance module
- * @link        github.com/ryanve/blood
- * @license     MIT
- * @copyright   2013 Ryan Van Etten
- * @version     0.5.5
+ * blood 0.6.0+201309031919
+ * https://github.com/ryanve/blood
+ * MIT License 2013 Ryan Van Etten
  */
-
-/*jshint expr:true, sub:true, supernew:true, debug:true, node:true, boss:true, devel:true, evil:true, 
-  laxcomma:true, eqnull:true, undef:true, unused:true, browser:true, jquery:true, maxerr:100 */
 
 (function(root, name, make) {
     typeof module != 'undefined' && module['exports'] ? module['exports'] = make() : root[name] = make();

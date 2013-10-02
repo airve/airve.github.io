@@ -1,23 +1,21 @@
 /*!
- * aok          Extensible test suite API
- * @link        github.com/ryanve/aok
- * @license     MIT
- * @copyright   2013 Ryan Van Etten
- * @version     1.1.0
+ * aok 1.3.0+201309070321
+ * https://github.com/ryanve/aok
+ * MIT License 2013 Ryan Van Etten
  */
-
-/*jshint expr:true, sub:true, supernew:true, debug:true, node:true, boss:true, devel:true, evil:true, 
-  laxcomma:true, eqnull:true, undef:true, unused:true, browser:true, jquery:true, maxerr:100 */
 
 (function(root, name, make) {
     typeof module != 'undefined' && module['exports'] ? module['exports'] = make() : root[name] = make();
 }(this, 'aok', function() {
 
-    var win = window
-      , doc = document
+    var globe = (function() { return this; }())
       , plain = {}
       , owns = plain.hasOwnProperty
       , toString = plain.toString
+      , win = typeof window != 'undefined' && window
+      , doc = typeof document != 'undefined' && document
+      , nativeConsole = typeof console != 'undefined' && console
+      , hasAlert = win && 'alert' in win
       , uid = 0;
       
     /**
@@ -28,13 +26,9 @@
         // Own 'test' unless instantiated w/o args,
         // or unless `data` is 'object' w/o 'test'.
         // Running proceeds only if 'test' is owned.
-        if (data && typeof data == 'object') {
-            for (var k in data) {
-                owns.call(data, k) && (this[k] = data[k]); 
-            }
-        } else if (arguments.length) {
-            this['test'] = data;
-        }
+        if (data && typeof data == 'object')
+            for (var k in data) owns.call(data, k) && (this[k] = data[k]); 
+        else arguments.length && (this['test'] = data);
         this['init']();
     }
 
@@ -54,7 +48,7 @@
     aok.prototype['fail'] = 'Fail';
     
     // Console abstractions
-    (function(target, console, win) {
+    (function(target, console, hasAlert, win) {
         /**
          * @param  {string}            name
          * @param  {(boolean|number)=} force
@@ -63,20 +57,20 @@
         function assign(name, force, key) {
             var method = console && typeof console[name] == 'function' ? function() {
                 console[name].apply(console, arguments);
-            } : function() {
-                method['force'] && win['alert'](name + ': ' + [].join.call(arguments, ' '));
-            };
+            } : hasAlert ? function() {
+                method['force'] && win.alert(name + ': ' + [].join.call(arguments, ' '));
+            } : function() {};
             method['force'] = !!force;
             target[key || name] = method;
         }
         
-        assign('info',  1);
-        assign('warn',  1);
+        assign('info', 1);
+        assign('warn', 1);
         assign('error', 1);
         assign('trace');
         assign('log');
         assign('log', 0, 'express');
-    }(aok, win.console, win));
+    }(aok, nativeConsole, hasAlert, win));
     
     // Alias the "express" method. `aok.prototype.express` is used in the 
     // default handler. Override it as needed for customization.
@@ -92,10 +86,10 @@
     aok['explain'] = explain;
     
     /**
-     * @param    {*} o  is an Object or mixed value
-     * @param    {(string|number)=}  k  
-     * @example  result(0)               // 0
-     * @example  result([1], 0)          // 1
+     * @param {Function|Object|*} o
+     * @param {(string|number)=}  k  
+     * @example result(0)      // 0
+     * @example result([1], 0) // 1
      */
     function result(o, k) {
         return 2 == arguments.length ? result.call(o, o[k]) : typeof o == 'function' ? o.call(this) : o;
@@ -103,10 +97,24 @@
     aok['result'] = result;
 
     /**
+     * Get a new function that uses try/catch to test if `fn` can run.
+     * @param  {Function|string} fn  callback or key
+     * @return {Function}
+     */
+    aok['can'] = function(fn) {
+        return function() {
+            try {
+                (typeof fn == 'string' ? this[fn] : fn).apply(this, arguments);
+            } catch (e) { return false; }
+            return true;
+        };
+    };
+
+    /**
      * @return {Aok}
      */
     aok.prototype['init'] = function() {
-        if (this === win) { throw new Error('@this'); }
+        if (this === globe) throw new Error('@this');
         owns.call(this, 'id') || (this['id'] = ++uid);
         owns.call(this, 'test') && this['run']();
         return this;
@@ -116,9 +124,9 @@
      * @return {Aok}
      */
     aok.prototype['run'] = function() {
-        if (this === win) { throw new Error('@this'); }
-        this['test'] = !!result(this, 'test'); // run the test 
-        return this['handler'](); // trigger the handler
+        if (this === globe) throw new Error('@this');
+        this['test'] = !!result(this, 'test'); // Run the test.
+        return this['handler'](); // Trigger the handler.
     };
     
     /**
@@ -151,6 +159,6 @@
     aok['id'] = function(n) {
         return doc.getElementById(n) || false;
     };
-    
+
     return aok;
 }));

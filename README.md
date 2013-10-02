@@ -1,4 +1,6 @@
-[airve.github.com](http://airve.github.com)
-================
+# [airve.github.io](http://airve.github.io)
 
-**Use the [URIs listed here](http://airve.github.com).** The ones in the repo are the same source but not cached.
+- URIs are served from [airve.github.io](http://airve.github.io) via [GitHub Pages](http://pages.github.com/)
+- URIs are served @latest versions.
+- URIs are intended for **development** use&mdash;not production. 
+- Libs are subject to their own licenses.

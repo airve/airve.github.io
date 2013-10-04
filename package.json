@@ -1,7 +1,7 @@
 {
   "name": "airve",
   "description": "static latest version URIs for development",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "homepage": "http://airve.github.io",
   "author": "Ryan Van Etten",
   "keywords": ["cdn", "development"],
@@ -9,10 +9,7 @@
     "type": "git",
     "url": "https://github.com/airve/airve.github.io.git"
   },
-  "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-uglify": "~0.2.4",
+  "optionalDependencies": {
     "aok": "latest",
     "blood": "latest",
     "cargo": "latest",
@@ -28,5 +25,12 @@
     "underscore": "latest",
     "verge": "latest",
     "vibe": "latest"
+  },
+  "devDependencies": {
+    "blood": "latest",
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.4"
   }
 }

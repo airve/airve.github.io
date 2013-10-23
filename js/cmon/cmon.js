@@ -1,5 +1,5 @@
 /*!
- * cmon 0.5.2+201309031951
+ * cmon 0.5.3+201310060225
  * https://github.com/ryanve/cmon
  * MIT License 2013 Ryan Van Etten
  */
@@ -9,7 +9,6 @@
         module['exports'] = make.call(root);
     } else {
         root[name] = make = make.call(root);
-        make['id'] = name;
         root['require'] || make['claim']('require', make['require'], root);
         root['provide'] || make['claim']('provide', make['provide'], root);
         make['provide'](name, make);

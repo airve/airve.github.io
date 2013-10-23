@@ -1,74 +1,67 @@
 /*!
- * vibe      CSS classes for the masses.
- * @version  0.8.0
- * @link     http://vibe.airve.com
- * @author   Ryan Van Etten
- * @license  MIT
+ * vibe 0.9.2+201310220432
+ * https://github.com/ryanve/vibe
+ * MIT License 2013 Ryan Van Etten
  */
-
-/*jshint expr:true, sub:true, supernew:true, debug:true, node:true, boss:true, devel:true, evil:true, 
-  laxcomma:true, eqnull:true, undef:true, unused:true, browser:true, jquery:true, maxerr:100 */
 
 (function(root, name, make) {
     typeof module != 'undefined' && module['exports'] ? module['exports'] = make() : root[name] = make();
 }(this, 'vibe', function() {
 
     var classList = 'classList'
-      , space = ' '
       , subject = document.documentElement[classList]
-      , hasApi = !!(subject && subject.contains && subject.toggle && subject.add && subject.remove)
-      , tabs = /[\t\r\n]/g
-      , ssv = /\s+/
+      , hasApi = !!(subject && subject.contains && subject.add && subject.remove)
+      , whitespace = /\s+/g
+      , ssv = /\S+/g
+      , space = ' '
+      , contains = function(str, token) {
+            return !!~(space + str.replace(whitespace, space) + space).indexOf(space + token + space);
+        }
 
       , addClass = hasApi ? function(el, c) {
             '' === c || el[classList].add(c);
         } : function(el, c) {
-            var classes = el.className.split(ssv).join(space);
-            '' === c || ~(space + classes + space).indexOf(space + c + space) || (el.className = classes + space + c);
+            contains(el.className, c) || (el.className += space + c);
         }
 
       , removeClass = hasApi ? function(el, c) {
             '' === c || el[classList].remove(c);
         } : function(el, c) {
-            var s = '', classes = el.className.split(ssv), i = classes.length;
-            c = s + c; // Use `s` to convert `c` to string. Repurpose `s` below.
-            // Loop backwards and maintain the class order.
-            while (i--)
-                classes[i] && classes[i] !== c && (s = classes[i] + ((s ? space : s) + s));
+            var s = '', classes = el.className.match(ssv), i = classes && classes.length;
+            for (c = s + c; i--;) s = c === classes[i] ? s : classes[i] + (s ? space : s) + s;
             el.className = s;
         }
 
       , hasClass = hasApi ? function(el, c) {
-            return '' !== c && el[classList].contains(c);
+            return '' === c || !!el[classList].contains(c);
         } : function(el, c) {
-            return '' !== c && !!~(space + el.className.replace(tabs, space) + space).indexOf(space + c + space);
+            return contains(el.className, c);
         }
 
-      , toggleClass = hasApi ? function(el, c) {
-            '' === c || el[classList].toggle(c);
-        } : function(el, c) {
-            (hasClass(el, c) ? removeClass : addClass)(el, c);
+      , toggleClass = function(el, c, force) {
+            if ('' === c) return true;
+            force = typeof force == 'boolean' ? force : !hasClass(el, c);
+            (force ? addClass : removeClass)(el, c);
+            return force;
         };
 
     /**
-     * @param {string|Array|Function} c
-     * @param {Function}              method
-     * @param {Array|Object}          els
+     * @param {{length:number}} els
+     * @param {Function} fn method
+     * @param {string|Array|Function} list of classes or callback to determine them
      */ 
-    function essEach(c, method, els) {
-        if (null == c) return els;
+    function bulk(els, fn, list) {
         var j, n, i = 0, l = els.length;
-        if (typeof c == 'function') {
+        if (typeof list == 'function') {
             while (i < l) {
-                n = c.call(els[i]);
+                n = list.call(els[i]);
                 if (false === n) break;
-                essEach(n, method, [els[i++]]);
+                bulk([els[i++]], fn, n);
             }
-        } else {
-            c = typeof c == 'string' ? c.split(ssv) : c;
-            for (n = c.length; i < l; i++) {
+        } else if (typeof list == 'string' ? list = list.match(ssv) : list) {
+            for (n = list.length; i < l; i++) {
                 for (j = 0; j < n; j++) {
-                    method(els[i], c[j]);
+                    fn(els[i], list[j]);
                 }
             }
         }
@@ -81,18 +74,18 @@
       , 'toggleClass': toggleClass
       , 'hasClass': hasClass
       , 'fn': {
-            'addClass': function(c) { 
-                return essEach(c, addClass, this); 
+            'addClass': function(list) {
+                return bulk(this, addClass, list); 
             }
-          , 'removeClass': function(c) { 
-                return essEach(c, removeClass, this); 
+          , 'removeClass': function(list) { 
+                return bulk(this, removeClass, list); 
             }
-          , 'toggleClass': function(c) { 
-                return essEach(c, toggleClass, this); 
+          , 'toggleClass': function(list, state) {
+                return bulk(this, true === state ? addClass : false === state ? removeClass : toggleClass, list);
             }
-          , 'hasClass': function(c) {
+          , 'hasClass': function(list) {
                 for (var i = 0, l = this.length; i < l;)
-                    if (hasClass(this[i++], c)) return true;
+                    if (hasClass(this[i++], list)) return true;
                 return false;
             }
         }

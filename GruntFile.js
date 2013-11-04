@@ -1,10 +1,10 @@
 module.exports = function(grunt) {
-    var _ = require('blood')
+    var _ = grunt.util._
       , pkg = grunt.file.readJSON('package.json')
       , srcDir = 'node_modules/'
       , tarDir = 'js/' 
       , manifest = _.keys(pkg.optionalDependencies)
-      , destinations = _.assign(_.object(manifest, manifest), _.pick({
+      , destinations = _.extend(_.object(manifest, manifest), _.pick({
             'ender-js': 'ender',
             'response.js': 'response'      
         }, manifest));

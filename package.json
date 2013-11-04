@@ -27,7 +27,6 @@
     "vibe": "latest"
   },
   "devDependencies": {
-    "blood": "latest",
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.6.4",
     "grunt-contrib-concat": "~0.3.0",

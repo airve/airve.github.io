@@ -1,7 +1,7 @@
 {
   "name": "airve",
   "description": "static latest version URIs for development",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "homepage": "http://airve.github.io",
   "author": "Ryan Van Etten",
   "keywords": ["cdn", "development"],

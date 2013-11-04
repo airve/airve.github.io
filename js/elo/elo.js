@@ -1,5 +1,5 @@
 /*!
- * elo 1.5.5 cross-browser JavaScript events and data module
+ * elo 1.6.0 cross-browser JavaScript events and data module
  * @link http://elo.airve.com
  * @license MIT
  * @author Ryan Van Etten
@@ -152,19 +152,15 @@
     }
 
     /**
-     * Convert SSV string to array (if not already) and iterate thru its values.
-     * We want this local to be fast and furious. It gets called each time on, 
-     * off, one, is called, among other internal usages.
+     * Iterate space-separated values. Optimized for internal use.
      * @link http://jsperf.com/eachssv
-     * @param {Array|string|*} list   is a space-separated string or array to iterate over
-     * @param {Function} fn     is the callback - it receives (value, key, ob)
+     * @param {Array|string|*} list to iterate over
+     * @param {Function} fn callback
      */
     function eachSSV(list, fn) {
         var l, i = 0;
-        list instanceof Array || (list = list.split(' '));
+        list = list instanceof Array ? list : list.split(' ');
         for (l = list.length; i < l; i++) {
-            // Only iterate truthy values.
-            // Omit thisArg support (no .call) as a minor optimization
             list[i] && fn(list[i], i, list);
         }
     }
@@ -175,18 +171,17 @@
      * @param {Object|Array|Function} s supplier
      */
      function aug(r, s) {
-        for (var k in s)
-            r[k] = s[k]; 
+        for (var k in s) r[k] = s[k]; 
         return r;
     }
 
     /**
-     * Fire every function in a stack using the specified scope and args.
+     * Apply every function in a stack using the specified scope and args.
      * @param {{length:number}} fns stack of functions to fire
      * @param {*=} scope thisArg
      * @param {(Array|Arguments)=} args
-     * @param {*=} breaker
-     * @return {boolean}
+     * @param {*=} breaker unless undefined
+     * @return {boolean} true if none return the breaker
      */
     function applyAll(fns, scope, args, breaker) {
         if (!fns) return true;
@@ -621,26 +616,13 @@
     // };
 
     /**
-     * Fire every function in `this` **OR** fire one or more 
-     * functions for each item in `this` -- using the supplied args.
-     * Syntax 1: $(fnsArray).applyAll(scope [, args, breaker])
-     * Syntax 2: $(els).applyAll(fnsArray [, args, breaker, outerContinue])
-     * In syntax 2, the scope in the apply'd fn will be the current elem.
-     * Syntax 1 used *unless* the first arg is an *array*.
-     * $(els).applyAll(fnsArray, args, false) //< able to break firing on current el and move onto the next el
-     * $(els).applyAll(fnsArray, args, false, false) //< able to break "hard" (break out of both loops)
+     * @this {{length:number}} stack of functions to fire
+     * @param {*=} scope
+     * @param {(Array|Arguments)=} args
+     * @param {*=} breaker
+     * @return {boolean}
      */
-    api['fn']['applyAll'] = function(scope, args, breaker, outerContinue) {
-        if (scope instanceof Array) {// Syntax 2:
-            // HANDLE: $(els).applyAll([function(a, b, c) {   }], [a, b, c]);
-            outerContinue = outerContinue !== false; // convert to `each` breaker
-            return each(this, function(el) {// `el` goes to the scope of the apply'd fn:
-                return applyAll(this, el, args, breaker) ? true : outerContinue;
-            }, scope); // < pass `scope` (array of fns) as `this` in iterator
-        }
-        // Syntax 1:
-        // HANDLE: $(fns).applyAll(thisArg, [a, b, c]); 
-        // (thisArg can be anything but an array in this syntax)
+    api['fn']['applyAll'] = function(scope, args, breaker) {
         return applyAll(this, scope, args, breaker); 
     };
     
@@ -672,25 +654,30 @@
         }
         return this;
     };
+    
+    /**
+     * @param {string} type event name
+     * @return {Function}
+     */
+    function shorthand(type) {
+        return function() {
+            var use = [type], method = 1 < push.apply(use, arguments) ? 'on' : 'trigger';
+            return this[method].apply(this, use);
+        };
+    }
 
     /**
-     * Add event shortcut methods to the chain specified via an SSV list or array.
-     * @since 1.4 (formerly mixinEvent())
-     * @param {Array|string} list array or SSV string of shortcut names
-     * @param {boolean=} force  whether to overwrite existing methods (default: false)
+     * Add event shorthands to the chain or a specified object.
+     * @param {Array|string} list of shortcut names
+     * @param {*=} dest destination defaults to `this`
      * @link http://developer.mozilla.org/en/DOM_Events
-     * @example $.dubEvent('resize scroll focus') // creates $.fn.resize, ...
+     * @example $.dubEvent('resize scroll focus')
      */
-    function dubEvent(list, force) {
-        if (this === win) return;
-        var receiver = this;
-        force = true === force;
-        list && eachSSV(list, function(n) {
-            (force || void 0 === receiver[n]) && (receiver[n] = function (fn) {
-                return arguments.length ? this['on'](n, fn) : this['trigger'](n);
-            });
-        });
-        return receiver;
+    function dubEvent(list, dest) {
+        dest = dest === Object(dest) ? dest : this === win ? {} : this;
+        return eachSSV(list, function(n) {
+            dest[n] = shorthand(n);
+        }), dest;
     }
     api['fn']['dubEvent'] = dubEvent;
 
@@ -699,7 +686,7 @@
      * @link http://github.com/ryanve/submix
      * @this {Object|Function} supplier
      * @param {Object|Function} r receiver
-     * @param {boolean=} force  whether to overwrite existing props (default: false)
+     * @param {boolean=} force whether to overwrite existing props (default: false)
      * @param {(Object|Function|null)=} $ the top-level of the host api (default: `r`)
      */
     function bridge(r, force, $) {

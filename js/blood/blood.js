@@ -1,5 +1,5 @@
 /*!
- * blood 0.6.0+201309031919
+ * blood 0.7.0+201311120940
  * https://github.com/ryanve/blood
  * MIT License 2013 Ryan Van Etten
  */
@@ -42,30 +42,27 @@
         }
         
         /**
-         * @param  {*}             ob
-         * @param  {string|number} key
+         * @param {*} o
+         * @param {string|number} key
          * @return {boolean}
          */
-      , has = function(ob, key) {
-            return owns.call(ob, key);
+      , has = function(o, key) {
+            return owns.call(o, key);
         }
 
-      , keys = !hasEnumBug && Object.keys || function(ob) {
-            var k, i = 0, list = [], others = dontEnums;
-            for (k in ob)
-                has(ob, k) && (list[i++] = k);
-            if (ob !== OP)
-                for (i = others.length; i--;)
-                    has(ob, k = others[i]) && admit(list, k);
-            return list;
+      , keys = !hasEnumBug && Object.keys || function(o) {
+            var k, i = 0, r = [], others = dontEnums;
+            for (k in o) has(o, k) && (r[i++] = k);
+            if (o !== OP) for (i = others.length; i--;) has(o, k = others[i]) && admit(r, k);
+            return r;
         }
 
-      , props = !hasEnumBug && Object.getOwnPropertyNames || function(ob) {
+      , names = !hasEnumBug && Object.getOwnPropertyNames || function(o) {
             // getOwnPropertyNames cannot be emulated exactly. Get as close as possible.
             // Include 'length' if owned and non-enumerable, such as for native arrays.
-            var props = keys(ob);
-            has(ob, 'length') && !loops.call(ob, 'length') && props.push('length');
-            return props;
+            var names = keys(o);
+            has(o, 'length') && !loops.call(o, 'length') && names.push('length');
+            return names;
         }
         
       , nativeCreate = (function(oCreate) {
@@ -79,13 +76,14 @@
 
       , create = nativeCreate || (function(emptyProto) {
             /**
-             * @link   github.com/kriskowal/es5-shim/pull/132
-             * @link   github.com/kriskowal/es5-shim/issues/150
-             * @link   github.com/kriskowal/es5-shim/pull/118
-             * @param  {Object|Array|Function|null}  parent
+             * @link http://github.com/kriskowal/es5-shim/pull/132
+             * @link http://github.com/kriskowal/es5-shim/issues/150
+             * @link http://github.com/kriskowal/es5-shim/pull/118
+             * @param {Object|null}  parent
              * @return {Object}
              */
             return function(parent) {
+                /** @constructor */
                 function F() {}
                 F.prototype = null === parent ? emptyProto : parent;
                 var instance = new F; // inherits F.prototype
@@ -94,52 +92,49 @@
             };
         }(combine([proto].concat(dontEnums), [null])))
 
-      , getPro = Object.getPrototypeOf || function(ob) {
-            return void 0 !== ob[proto] ? ob[proto] : (ob.constructor || Object).prototype; 
+      , getPro = Object.getPrototypeOf || function(o) {
+            return void 0 !== o[proto] ? o[proto] : (o.constructor || Object).prototype; 
         }
 
-      , setPro = function(ob, pro) {
-            ob[proto] = pro; // experimental
-            return ob;
+      , setPro = function(o, pro) {
+            o[proto] = pro; // experimental
+            return o;
         };
 
     /**
-     * @param  {Object|Array|Function}          receiver
-     * @param  {(Object|Array|Function)=}       supplier
-     * @param  {(Array|string|number|boolean)=} list
+     * @param {Object} to
+     * @param {Object=} from
+     * @param {(Array|string|number|boolean)=} list
      */
-    function adopt(receiver, supplier, list) {
+    function adopt(to, from, list) {
         var i = arguments.length, force = null != (false === list ? list = null : list);
-        1 === i && (supplier = receiver, receiver = this);
-        list = force && true !== list ? (typeof list != 'object' ? [list] : list) : keys(supplier);
+        if (1 === i) from = to, to = this;
+        list = force && true !== list ? (typeof list != 'object' ? [list] : list) : keys(from);
         i = list.length;
-        for (i = 0 < i && i; i--;) {
-            if (force || !has(receiver, list[i]))
-                receiver[list[i]] = supplier[list[i]];
-        }
-        return receiver;
+        if (0 < i) while (i--) if (force || !has(to, list[i])) to[list[i]] = from[list[i]];
+        return to;
     }
 
     /**
-     * @param  {Object|Array|Function} receiver
-     * @param  {Object|Array|Function} supplier
+     * @param {Object} to
+     * @param {Object} from
      */
-    function assign(receiver, supplier) {
+    function assign(to, from) {
         // Functionally like the ES6 Object.assign expectation, plus single-param syntax
-        1 === arguments.length && (supplier = receiver, receiver = this);
-        return adopt(receiver, supplier, keys(supplier));
+        1 === arguments.length && (from = to, to = this);
+        return adopt(to, from, keys(from));
     }
     
     /**
-     * @param  {Object|Array|Function} ob
-     * @param  {Object|null}           pro
+     * @param {Object} o
+     * @param {Object|null} pro
      */
-    function line(ob, pro) {
-        return 2 == arguments.length ? setPro(ob, pro) : getPro(ob);
+    function line(o, pro) {
+        return 2 == arguments.length ? setPro(o, pro) : getPro(o);
     }
 
     /**
-     * @param  {Object}  source
+     * @param {Object} source
      * @return {Object}
      */
     function orphan(source) {
@@ -147,186 +142,202 @@
     }
 
     /**
-     * @param  {Object|Array|Function|null} source
-     * @param  {(Object|null)=}             parent
+     * @param {(Object|null)=} source
+     * @param {(Object|null)=} parent
      */
     function twin(source, parent) {
         var n = arguments.length;
         source = n ? source : this;
         parent = 2 == n ? parent : getPro(source);
-        return adopt(create(parent), source, props(source));
-    }
-    
-    // Use .every/.some/.reduce/.map for array-likes.
-    // Use .all/.any/.inject/.collect for NON-array-likes.
-
-    /**
-     * @param  {Object|Function} ob
-     * @param  {Function=}       fn
-     * @param  {*=}              scope
-     */
-    function all(ob, fn, scope) {
-        var list = keys(ob), l = list.length, i = 0;
-        while (i < l) if (!fn.call(scope, ob[list[i]], list[i++], ob)) return false;
-        return true;
+        return adopt(create(parent), source, names(source));
     }
     
     /**
-     * @param  {Object|Function} ob
-     * @param  {Function=}       fn
-     * @param  {*=}              scope
-     */
-    function any(ob, fn, scope) {
-        var list = keys(ob), l = list.length, i = 0;
-        while (i < l) if (fn.call(scope, ob[list[i]], list[i++], ob)) return true;
-        return false;
-    }
-    
-    /**
-     * @param  {Object|Array} ob
-     * @param  {Function=}    fn
-     * @param  {*=}           scope
-     */
-    function every(ob, fn, scope) {
-        var l = ob.length, i = 0;
-        while (i < l) if (!fn.call(scope, ob[i], i++, ob)) return false;
-        return true;
-    }
-    
-    /**
-     * @param  {Object|Array} ob
-     * @param  {Function=}    fn
-     * @param  {*=}           scope
-     */
-    function some(ob, fn, scope) {
-        var l = ob.length, i = 0;
-        while (i < l) if (fn.call(scope, ob[i], i++, ob)) return true;
-        return false;
-    }
-    
-    /**
-     * @param  {Object|Array|Arguments} ob
-     * @param  {Function}               accum
-     * @param  {*=}                     value
-     * @param  {*=}                     scope
-     */
-    function reduce(ob, accum, value, scope) {
-        var i = 0, l = ob.length;
-        value = 3 > arguments.length ? ob[i++] : value;
-        while (i < l) value = accum.call(scope, value, ob[i], i++, ob);
-        return value;
-    }
-    
-    /**
-     * @param  {Object|Function}        ob
-     * @param  {Function}               accum
-     * @param  {*=}                     value
-     * @param  {*=}                     scope
-     */
-    function inject(ob, accum, value, scope) {
-        var list = keys(ob), i = 0, l = list.length;
-        value = 3 > arguments.length ? ob[list[i++]] : value;
-        while (i < l) value = accum.call(scope, value, ob[list[i]], list[i++], ob);
-        return value;
-    }
-    
-    /**
-     * @param  {Object|Function|Array} ob
+     * @param {Object} o
      * @return {Array}
      */
-    function tree(ob) {
-        var chain = [ob];
-        while (null != (ob = getPro(ob))) chain.push(ob);
+    function tree(o) {
+        var chain = [o];
+        while (null != (o = getPro(o))) chain.push(o);
         return chain;
     }
     
     /**
-     * @param  {Object|Function|Array} ob
+     * @param {Object} o
      * @return {Array}
      */
-    function roots(ob) {
-        return tree(ob).slice(1);
-    }
-
-    /**
-     * @param  {Array|Object} list
-     * @param  {*=}           value
-     * @return {Array|Object}
-     */
-    function admit(list, value) {
-        ~indexOf.call(list, value) || push.call(list, value);
-        return list;
+    function roots(o) {
+        return tree(o).slice(1);
     }
     
     /**
-     * @param  {Array|Object} list
+     * @param {Object} o source to read from
+     * @param {Function} cb callback
+     * @param {boolean=} fold
+     * @return {Function}
+     */
+    function swap(o, cb, fold) {
+        return fold ? function(memo, k) {
+            return cb.call(this, memo, o[k], k, o);
+        } : function(k) {
+            return cb.call(this, o[k], k, o);
+        };
+    }
+    
+    /**
+     * @param {Function} fn stack iterator
+     * @param {boolean=} fold
+     * @return {Function}
+     */
+    function proxy(fn, fold) {
+        return function(o) {
+            return fn.apply(fn, map(arguments, function(v, i) {
+                return 0 === i ? keys(v) : 1 === i ? swap(o, v, fold) : v;
+            }));
+        };
+    }
+    
+    /**
+     * @param {{length:number}} stack
+     * @param {Function=} fn
+     * @param {*=} scope
+     * @return {boolean}
+     */
+    function some(stack, fn, scope) {
+        var l = stack.length, i = 0;
+        while (i < l) if (fn.call(scope, stack[i], i++, stack)) return true;
+        return false;
+    }
+    
+    /**
+     * @param {{length:number}} stack
+     * @param {Function=} fn
+     * @param {*=} scope
+     * @return {boolean}
+     */
+    function every(stack, fn, scope) {
+        var l = stack.length, i = 0;
+        while (i < l) if (!fn.call(scope, stack[i], i++, stack)) return false;
+        return true;
+    }
+    
+    /**
+     * @param {{length:number}} stack
+     * @param {Function} accum
+     * @param {*=} value
+     * @param {*=} scope
+     */
+    function reduce(stack, accum, value, scope) {
+        var i = 0, l = stack.length;
+        value = 3 > arguments.length ? stack[i++] : value;
+        while (i < l) value = accum.call(scope, value, stack[i], i++, stack);
+        return value;
+    }
+    
+    /**
+     * @param {{length:number}} stack
+     * @param {Function} fn
+     * @param {*=} scope
      * @return {Array}
      */
-    function uniq(list) {
-        return reduce(list, admit, []);
+    function map(stack, fn, scope) {
+        var r = [], l = stack.length, i = 0;
+        while (i < l) r[i] = fn.call(scope, stack[i], i++, stack);
+        return r;
     }
 
     /**
-     * @param  {*}  ob
+     * @param {{length:number}} stack
+     * @param {string|number} key
+     * @return {Array}
+     */
+    function pluck(stack, key) {
+        return map(stack, function(v) {
+            return v[key];
+        });
+    }
+
+    /**
+     * @param {{length:number}} stack
+     * @param {*=} value
+     * @return {{length:number}}
+     */
+    function admit(stack, value) {
+        ~indexOf.call(stack, value) || push.call(stack, value);
+        return stack;
+    }
+    
+    /**
+     * @param {{length:number}} stack
+     * @return {Array}
+     */
+    function uniq(stack) {
+        return reduce(stack, admit, []);
+    }
+
+    /**
+     * @param {*} o
      * @return {number}
      */
-    function size(ob) {
-        return null == ob ? 0 : (ob.length === +ob.length ? ob : keys(ob)).length; 
+    function size(o) {
+        return null == o ? 0 : (o.length === +o.length ? o : keys(o)).length; 
     }
 
     /**
-     * @param  {Object|Array|Function} ob
+     * @param {Object} o
      * @return {Array}
      */
-    function values(ob) {
-        var list = keys(ob), i = list.length;
-        while (i--) list[i] = ob[list[i]];
+    function values(o) {
+        var list = keys(o), i = list.length;
+        while (i--) list[i] = o[list[i]];
         return list;
     }
     
     /**
-     * @param  {Object|Array|Function} ob
+     * @param {Object} o
      * @return {Array}
      */
-    function pairs(ob) {
-        var list = keys(ob), i = list.length;
-        while (i--) list[i] = [list[i], ob[list[i]]];
+    function pairs(o) {
+        var list = keys(o), i = list.length;
+        while (i--) list[i] = [list[i], o[list[i]]];
         return list;
     }
     
     /**
-     * @param  {Object|Array|Arguments} keys
-     * @param  {Object|Array|Arguments} values
-     * @param  {*=}                     target
-     * @return {Object|*}
-     */
-    function combine(keys, values, target) {
-        return some(keys, values ? function(n, i) {
-            this[n] = values[i];
-        } : function(pair) {
-            this[pair[0]] = pair[1];
-        }, target = target || {}), target;
-    }
-    
-    /**
-     * @param  {Object|Array|Arguments} ob
+     * @param {{length:number}} keys
+     * @param {{length:number}} values
      * @return {Object}
      */
-    function invert(ob) {
-        return combine(values(ob), keys(ob));
+    function combine(keys, values) {
+        var o = {};
+        return some(keys, values ? function(n, i) {
+            o[n] = values[i];
+        } : function(pair) {
+            o[pair[0]] = pair[1];
+        }), o;
     }
 
     /**
-     * @param  {number}       max
-     * @param  {Array|Object} o
+     * @param {Object} o
+     * @return {Object}
+     */
+    function invert(o) {
+        return combine(values(o), keys(o));
+    }
+
+    /**
+     * @param {number} max
+     * @param {{length:number}} stack
      * @return {number}
      */
-    function longer(max, o) {
-        return (o = o.length >> 0) > max ? o : max;
+    function longer(max, stack) {
+        var i = stack.length >> 0;
+        return i > max ? i : max;
     }
     
     /**
      * like underscorejs.org/#zip
+     * @param {...}
      * @return {Array}
      */
     function zip() {
@@ -336,116 +347,76 @@
     }
 
     /**
-     * @param  {Object|Array|Function} ob
-     * @param  {string|Array}          type
+     * @param {Object} o
+     * @param {string|Array} type
      * @return {Array}
      */
-    function types(ob, type) {
-        var names = keys(ob), i = names.length;
+    function types(o, type) {
+        var names = keys(o), i = names.length;
         type = typeof type != 'object' ? [type] : type;
-        while (i--) ~indexOf.call(type, typeof ob[names[i]]) || names.splice(i, 1);
+        while (i--) ~indexOf.call(type, typeof o[names[i]]) || names.splice(i, 1);
         return names.sort();
     }
     
     /**
-     * @param  {Object|Array|Function} ob
+     * @param {Object} o
      * @return {Array}
      */
-    function methods(ob) {
-        return types(ob, 'function');
+    function methods(o) {
+        return types(o, 'function');
     }
 
     /**
-     * @param  {Object|Array|Function} source
+     * @param {Object} from
      * @return {Object}
      */
-    function pick(source) {
+    function pick(from) {
         for (var r = {}, list = concat.apply(AP, slice.call(arguments, 1)), l = list.length, i = 0; i < l; i++)
-            if (list[i] in source) r[list[i]] = source[list[i]];
+            if (list[i] in from) r[list[i]] = from[list[i]];
         return r;
     }
 
     /**
-     * @param  {Object|Array|Function} source
+     * @param {Object} from
      * @return {Object}
      */
-    function omit(source) {
+    function omit(from) {
         var k, r = {}, list = concat.apply(AP, slice.call(arguments, 1));
-        for (k in source) ~indexOf.call(list, k) || (r[k] = source[k]);
+        for (k in from) ~indexOf.call(list, k) || (r[k] = from[k]);
         return r;
     }
-    
-    /**
-     * @param  {*}        ob
-     * @param  {Function} fn
-     * @param  {*=}       scope
-     * @return {Array}
-     */
-    function map(ob, fn, scope) {
-        var r = [];
-        return some(ob, function(v, k, ob) {
-            r[k] = fn.call(scope, v, k, ob);
-        }), r;
-    }
-    
-    /**
-     * @param  {*}        ob
-     * @param  {Function} fn
-     * @param  {*=}       scope
-     * @return {Array}
-     */
-    function collect(ob, fn, scope) {
-        var r = [];
-        return any(ob, function(v, k, ob) {
-            r[k] = fn.call(scope, v, k, ob);
-        }), r;
-    }
 
     /**
-     * @param  {*}             ob
-     * @param  {string|number} key
-     * @return {Array}
-     */
-    function pluck(ob, key) {
-        var r = [];
-        return some(ob, function(v, k) {
-            r[k] = v[key];
-        }), r;
-    }
-
-    /**
-     * @param  {Object|Array} ob
-     * @param  {*}            needle
+     * @param {Object} o
+     * @param {*} needle
      * @return {boolean}
      */
-    function include(ob, needle) {
+    function include(o, needle) {
         // Emulate _.include (underscorejs.org/#contains)
-        return !!~indexOf.call(ob.length === +ob.length ? ob : values(ob), needle);
+        return !!~indexOf.call(o.length === +o.length ? o : values(o), needle);
     }
     
     /**
-     * @param  {*}  a
-     * @param  {*=} b
+     * @param {*} a
+     * @param {*=} b
      * @return {boolean}
      */
     function same(a, b) {
-        // Emulate ES6 Object.is
-        return a === b ? (
-            0 !== a || 1/a === 1/b  // Discern -0 from 0
-        ) : a !== a && b !== b;     // NaN is non-reflexive
+        // Emulate ES6 Object.is - Fixes NaN and discerns -0 from 0
+        return a === b ? (0 !== a || 1/a === 1/b) : a !== a && b !== b; 
     }
 
     return {
         'adopt': adopt
-      , 'all': all
-      , 'any': any
+      , 'all': proxy(every)
+      , 'any': proxy(some)
       , 'assign': assign
       , 'create': create
-      , 'collect': collect
+      , 'collect': proxy(map)
       , 'every': every
       , 'has': has
       , 'include': include
-      , 'inject': inject
+      , 'inject': proxy(reduce, true)
       , 'invert': invert
       , 'keys': keys
       , 'line': line
@@ -459,7 +430,7 @@
       , 'pairs': pairs
       , 'pick': pick
       , 'pluck': pluck
-      , 'props': props
+      , 'names': names
       , 'reduce': reduce
       , 'roots': roots
       , 'tree': tree

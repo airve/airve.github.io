@@ -1,5 +1,5 @@
 /*!
- * cmon 0.5.3+201310060225
+ * cmon 0.6.0+201311090640
  * https://github.com/ryanve/cmon
  * MIT License 2013 Ryan Van Etten
  */
@@ -15,47 +15,49 @@
     }
 }(this, 'cmon', function() {
 
-    var root = this || window
+    var globe = typeof window != 'undefined' && window || typeof global != 'undefined' && global
+      , root = this || globe
       , modules = {}
       , claimed = {}
       , owns = claimed.hasOwnProperty;
 
     /**
-     * @param  {string|number} id
-     * @link   wiki.commonjs.org/wiki/Modules/1.1.1
+     * @param {string|number|Array} id or deps
+     * @param {(Function|number)=} fn or index
+     * @link http://wiki.commonjs.org/wiki/Modules/1.1.1
      */
-    function require(id) {
+    function require(id, fn) {
         if (null == id) throw new TypeError('@require');
-        return (owns.call(modules, id) ? modules : root)[id];
+        if (typeof fn == 'function') return able(id, fn);
+        return (null != modules[id] ? modules : null != root[id] ? root : globe)[id];
     }
 
     /**
-     * @param  {string|number} id
-     * @param  {*=}            value
+     * @param {string|number} id
+     * @param {*=} value
      */
     function provide(id, value) {
         if (null == id) throw new TypeError('@provide');
         modules[id] = value;
-        provide['trigger'](id);
+        provide['emit'](id);
         return value;
     }
 
     /**
-     * @param  {string|number|Function} id
-     * @param  {*=}  value
+     * @param {string|number|Function} id
+     * @param {*=} value
+     * @param {*=} guard
      */
     function cmon(id, value) {
-        if (typeof id != 'function')
-            // Check for 2 so that arrays map v/i/a as require
-            return 2 == arguments.length ? provide.call(root, id, value) : require.call(root, id);
-        // Call callback and return undefined
-        id.call(root, cmon);
+        if (typeof id == 'function') return void id.call(root, cmon);
+        // Check for 2 so that arrays map v/i/a as require
+        return 2 == arguments.length ? provide(id, value) : require(id);
     }
     
     /**
-     * @param  {string|number} id
-     * @param  {*=}            value
-     * @param  {*=}            scope
+     * @param {string|number} id
+     * @param {*=} value
+     * @param {*=} scope
      */
     function claim(id, value, scope) {
         if (null == id) throw new TypeError('@claim');
@@ -65,9 +67,9 @@
     }
     
     /**
-     * @param  {string|number} id
-     * @param  {*=}            value
-     * @param  {*=}            scope
+     * @param {string|number} id
+     * @param {*=} value
+     * @param {*=} scope
      */
     function unclaim(id, value, scope) {
         if (null == id) throw new TypeError('@unclaim');
@@ -78,8 +80,8 @@
     }
     
     /**
-     * @this   {Object|Function}
-     * @param  {(boolean|Function)=} fn 
+     * @this {Object|Function}
+     * @param {(boolean|Function)=} fn 
      * @return {Object|Function}
      */
     function noConflict(fn) {
@@ -90,44 +92,53 @@
         return this;
     }
     
-    // Make an on/off/trigger event API for provide()
-    (function(target, triggerScope, handlers, owns) {
+    // Make an event emitter API for provide()
+    (function(target, context, handlers, owns) {
         /**
-         * @param  {Array|Object} fns
-         * @param  {*=}           scope
+         * @param {Array|Object} fns
+         * @param {*=} scope
+         * @param {number} fired
          */
         function callEach(fns, scope) {
-            for (var i = 0, l = fns && fns.length; i < l;)
-                if (false === fns[i++].call(scope)) break;
+            for (var i = 0, l = fns && fns.length; i < l && false !== fns[i++].call(scope);) {}
+            return i;
         }
 
         /**
-         * @param  {Array} arr      array to mutate
-         * @param  {*=}    ejectee  value to remove
+         * @param {Array} arr to mutate
+         * @param {*=} item to remove
          */
-        function eject(arr, ejectee) {
-            for (var i = arr.length; i--;)
-                ejectee === arr[i] && arr.splice(i, 1);
+        function pull(arr, item) {
+            // Loop down so that splices don't interfere with subsequent iterations.
+            for (var i = arr.length; i--;) item === arr[i] && arr.splice(i, 1);
             return arr;
         }
         
         /**
-         * @param  {Array|string|number} id
+         * @param {string|number} id
+         * @param {number} fired
+         */    
+        target['emit'] = function(id) {
+            return owns.call(handlers, id) ? callEach(handlers[id], context) : 0;
+        };
+        
+        /**
+         * @deprecated Use .emit() instead
+         * @param {Array|string|number} id
          */    
         target['trigger'] = function(id) {
-            id = typeof id == 'object' ? id : [id];
-            for (var i = 0, l = id.length; i < l; i++)
-                owns.call(handlers, id[i]) && callEach(handlers[id[i]], triggerScope);
+            var l, i = 0, em = target['emit'];
+            if (typeof id != 'object') em(id);
+            else for (l = id.length; i < l;) em(id[i++]);
         };
     
         /**
-         * @param  {string|number|Array} id
-         * @param  {Function}            fn
+         * @param {Array|string|number} id
+         * @param {Function} fn
          * @return {number}
          */    
         target['on'] = function(id, fn) {
-            if (null == id || typeof fn != 'function')
-                throw new TypeError('@on');
+            if (null == id || typeof fn != 'function') throw new TypeError('@on');
             id = [].concat(id);
             for (var n = 0, i = 0, l = id.length; i < l; i++)
                 n += (handlers[id[i]] = owns.call(handlers, id[i]) && handlers[id[i]] || []).push(fn);
@@ -135,24 +146,24 @@
         };
         
         /**
-         * @param  {string|number|Array} id
-         * @param  {Function=}           fn
+         * @param {Array|string|number} id
+         * @param {Function=} fn
          * @return {number}
          */
         target['off'] = function(id, fn) {
             id = [].concat(id);
             for (var k, n = 0, i = 0, l = id.length; i < l;) {
                 if (owns.call(handlers, k = id[i++]) && null != k) {
-                    if (void 0 === fn) handlers[k] = fn; // Undefine - remove all.
-                    else handlers[k] && (n += eject(handlers[k], fn).length);
+                    if (void 0 === fn) handlers[k] = fn; // Undefine (remove all).
+                    else handlers[k] && (n += pull(handlers[k], fn).length);
                 }
             }
             return n;
         };
         
         /**
-         * @param  {string|number|Array} id
-         * @param  {Function}            fn
+         * @param {Array|string|number} id
+         * @param {Function} fn
          * @return {number}
          */    
         target['one'] = function(id, fn) {
@@ -164,9 +175,9 @@
         };
         
         /**
-         * @param  {string|number|Array} id
-         * @param  {Function}            fn
-         * @return 
+         * @param {Array|string|number} id
+         * @param {Function} fn
+         * @return {number}
          */    
         target['done'] = function(id, fn) {
             var wrapped;
@@ -181,9 +192,9 @@
     }(provide, root, {}, owns));
     
     /**
-     * @param  {Array|string|number}   id
-     * @param  {Function}              fn
-     * @param  {*=}                    scope
+     * @param {Array|string|number} id
+     * @param {Function} fn
+     * @param {*=} scope
      */    
     function inquire(id, fn, scope) {
         id = [].concat(id);
@@ -194,9 +205,9 @@
     }
     
     /**
-     * @param  {Array|string|number} id
-     * @param  {Function=}           fn
-     * @param  {*=}                  scope
+     * @param {Array|string|number} id
+     * @param {Function=} fn
+     * @param {*=} scope
      */
     function unavailable(id, fn, scope) {
         id = [].concat(id);
@@ -207,9 +218,9 @@
     }
     
     /**
-     * @param  {Array|string|number} id
-     * @param  {Function=}           fn
-     * @param  {*=}                  scope
+     * @param {Array|string|number} id
+     * @param {Function=} fn
+     * @param {*=} scope
      */
     function occupy(id, fn, scope) {
         id = [].concat(id);
@@ -220,12 +231,12 @@
     }
     
     /**
-     * @param  {Array|string|number} id
-     * @param  {Function=}           fn
-     * @param  {number=}             timeout
-     * @return {Array|boolean}
+     * @param {Array|string|number} id
+     * @param {Function=} fn
+     * @param {number=} timeout
+     * @return {boolean}
      */
-    cmon['able'] = function(id, fn, timeout) {
+    function able(id, fn, timeout) {
         if (null == id) throw new TypeError('@able');
         var force = typeof timeout == 'number'
           , queue = unavailable(id)
@@ -243,8 +254,9 @@
             force && setTimeout(run, timeout)
         ));
         return now;
-    };
-
+    }
+    
+    cmon['able'] = able;
     cmon['provide'] = provide;
     cmon['require'] = require;
     cmon['claim'] = claim;

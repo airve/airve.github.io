@@ -1,25 +1,18 @@
 /*!
- * @link http://responsejs.com
- * @link http://github.com/ryanve/response.js
- * @copyright 2014 Ryan Van Etten
- * @license MIT
- * @version 0.7.12
+ * response.js 0.8.0+201403151700
+ * https://github.com/ryanve/response.js
+ * MIT License (c) 2014 Ryan Van Etten
  */
- 
-/*jshint expr:true, sub:true, supernew:true, debug:true, node:true, boss:true, devel:true, evil:true, 
-  laxcomma:true, eqnull:true, undef:true, unused:true, browser:true, jquery:true, maxerr:100 */
 
 (function(root, name, make) {
   var $ = root['jQuery'] || root['Zepto'] || root['ender'] || root['elo'];
   if (typeof module != 'undefined' && module['exports']) module['exports'] = make($);
   else root[name] = make($);
-  // @link github.com/ryanve/response.js/pull/9
-  // @example AMD `define(['jquery'], make)
 }(this, 'Response', function($) {
 
   if (typeof $ != 'function') {
-    try {// Exit gracefully if dependency is missing:
-      console.log('Response was unable to run due to missing dependency.');
+    try {
+      return void console.warn('response.js aborted due to missing dependency');
     } catch (e) {}
   }
 
@@ -221,15 +214,15 @@
    * Range comparison booleans
    * @link responsejs.com/#booleans
    */
-  band = ranger(viewportW);    // Response.band
-  wave = ranger(viewportH);    // Response.wave
+  band = ranger(viewportW); // Response.band
+  wave = ranger(viewportH); // Response.wave
   device.band = ranger(deviceW); // Response.device.band
   device.wave = ranger(deviceH); // Response.device.wave
   
   /**
    * Response.dpr(decimal) Tests if a minimum device pixel ratio is active. 
    * Or (version added in 0.3.0) returns the device-pixel-ratio
-   * @param {number} decimal   is the integer or float to test.
+   * @param {number} decimal is the integer or float to test.
    * @return {boolean|number}
    * @example Response.dpr() // get the device-pixel-ratio (or 0 if undetectable)
    * @example Response.dpr(1.5) // true when device-pixel-ratio is 1.5+
@@ -280,7 +273,7 @@
    * Convert stringified primitives back to JavaScript.
    * @since 0.3.0
    * @param {string|*} s String to parse into a JavaScript value.
-   * @return {*} 
+   * @return {*}
    */
   function render(s) {
     var n; // undefined, or becomes number
@@ -327,7 +320,7 @@
 
     // ** Zero args **
     // Get object containing all the data attributes. Use native dataset when avail.
-    if (elem.dataset && DOMStringMap) return elem.dataset;
+    if (elem.dataset && typeof DOMStringMap != 'undefined') return elem.dataset;
     each(elem.attributes, function(a) {
       // Fallback adapted from ded/bonzo
       a && (n = String(a.name).match(regexDataPrefix)) && (ret[camelize(n[1])] = a.value);
@@ -389,23 +382,17 @@
     return $(sel(compact(keys)));  
   }
 
-  // Cross-browser versions of window.scrollX and window.scrollY
-  // Compatibiliy notes @link developer.mozilla.org/en/DOM/window.scrollY
-  // Performance tests @link jsperf.com/scrollx-cross-browser-compatible
-  // Using native here b/c Zepto doesn't support .scrollLeft() /scrollTop()
-  // In jQuery you can do $(window).scrollLeft() and $(window).scrollTop()
-
   /** 
    * @since 0.3.0
-   * @return {number}
+   * @return {number} like jQuery(window).scrollLeft()
    */
   function scrollX() {
     return window.pageXOffset || docElem.scrollLeft; 
   }
 
   /** 
-   * @since   0.3.0
-   * @return {number}
+   * @since 0.3.0
+   * @return {number} like $(window).scrollTop()
    */
   function scrollY() { 
     return window.pageYOffset || docElem.scrollTop; 
@@ -413,7 +400,7 @@
 
   /**
    * area methods inX/inY/inViewport
-   * @since   0.3.0
+   * @since 0.3.0
    */
   function rectangle(el, verge) {
     // Local handler for area methods:
@@ -551,147 +538,146 @@
     }
 
     return {
-      $e: 0       // object   jQuery object
-      , mode: 0       // integer  defined per element
-      , breakpoints: null // array  validated @ configure()
-      , prefix: null    // string   validated @ configure()
-      , prop: 'width'   // string   validated @ configure()
-      , keys: []      // array  defined @ configure()
-      , dynamic: null   // boolean  defined @ configure()
-      , custom: 0     // boolean  see addTest()
-      , values: []    // array  available values
-      , fn: 0       // callback the test fn, defined @ configure()
-      , verge: null     // integer  uses default based on device size
+      $e: 0 // jQuery instance
+      , mode: 0 // integer  defined per element
+      , breakpoints: null // array, validated @ configure()
+      , prefix: null // string, validated @ configure()
+      , prop: 'width' // string, validated @ configure()
+      , keys: [] // array, defined @ configure()
+      , dynamic: null // boolean, defined @ configure()
+      , custom: 0 // boolean, see addTest()
+      , values: [] // array, available values
+      , fn: 0 // callback, the test fn, defined @ configure()
+      , verge: null // integer  uses default based on device size
       , newValue: 0
       , currValue: 1
       , aka: null
       , lazy: null
-      , i: 0  // integer   the index of the current highest active breakpoint min
+      , i: 0  // integer, the index of the current highest active breakpoint min
       , uid: null
 
       , reset: function() {
-        var subjects = this.breakpoints, i = subjects.length, tempIndex = 0;
-        while (!tempIndex && i--) this.fn(subjects[i]) && (tempIndex = i);
-        if (tempIndex !== this.i) {
-          // Crossover occurred. Fire the crossover events:
-          $win.trigger(crossover).trigger(this.prop + crossover);
-          this.i = tempIndex || 0;
+          var subjects = this.breakpoints, i = subjects.length, tempIndex = 0;
+          while (!tempIndex && i--) this.fn(subjects[i]) && (tempIndex = i);
+          if (tempIndex !== this.i) {
+            // Crossover occurred. Fire the crossover events:
+            $win.trigger(crossover).trigger(this.prop + crossover);
+            this.i = tempIndex || 0;
+          }
+          return this;
         }
-        return this;
-      }
 
       , configure: function(options) {
-        merge(this, options);
-      
-        var i, points, prefix, aliases, aliasKeys, isNumeric = true, prop = this.prop;
-        this.uid = suid++;
-        if (null == this.verge) this.verge = min(screenMax, 500);
-        this.fn = propTests[prop] || doError('create @fn');
+          merge(this, options);
+        
+          var i, points, prefix, aliases, aliasKeys, isNumeric = true, prop = this.prop;
+          this.uid = suid++;
+          if (null == this.verge) this.verge = min(screenMax, 500);
+          this.fn = propTests[prop] || doError('create @fn');
 
-        // If we get to here then we know the prop is one one our supported props:
-        // 'width', 'height', 'device-width', 'device-height', 'device-pixel-ratio'
-        if (null == this.dynamic) this.dynamic = 'device' !== prop.slice(0, 6);
-        
-        this.custom = isCustom[prop];
-        prefix = this.prefix ? sift(map(compact(this.prefix), sanitize)) : ['min-' + prop + '-'];
-        aliases = 1 < prefix.length ? prefix.slice(1) : 0;
-        this.prefix = prefix[0];
-        points = this.breakpoints;
-        
-        // Sort and validate (#valid8) custom breakpoints if supplied.
-        // Must be done before keys are created so that the keys match:
-        if (isArray(points)) {
-          each(points, function(v) {
-            if (!v && v !== 0) throw 'invalid breakpoint';
-            isNumeric = isNumeric && isFinite(v);
-          });
+          // If we get to here then we know the prop is one one our supported props:
+          // 'width', 'height', 'device-width', 'device-height', 'device-pixel-ratio'
+          if (null == this.dynamic) this.dynamic = 'device' !== prop.slice(0, 6);
           
-          isNumeric && points.sort(ascending);
-          points.length || doError('create @breakpoints');
-        } else {
-          // The default breakpoints are presorted.
-          points = defaultPoints[prop] || defaultPoints[prop.split('-').pop()] || doError('create @prop'); 
+          this.custom = isCustom[prop];
+          prefix = this.prefix ? sift(map(compact(this.prefix), sanitize)) : ['min-' + prop + '-'];
+          aliases = 1 < prefix.length ? prefix.slice(1) : 0;
+          this.prefix = prefix[0];
+          points = this.breakpoints;
+          
+          // Sort and validate (#valid8) custom breakpoints if supplied.
+          // Must be done before keys are created so that the keys match:
+          if (isArray(points)) {
+            each(points, function(v) {
+              if (!v && v !== 0) throw 'invalid breakpoint';
+              isNumeric = isNumeric && isFinite(v);
+            });
+            
+            isNumeric && points.sort(ascending);
+            points.length || doError('create @breakpoints');
+          } else {
+            // The default breakpoints are presorted.
+            points = defaultPoints[prop] || defaultPoints[prop.split('-').pop()] || doError('create @prop'); 
+          }
+
+          // Remove breakpoints that are above the device's max dimension,
+          // in order to reduce the number of iterations needed later.
+          this.breakpoints = isNumeric ? sift(points, function(n) { 
+            return n <= screenMax; 
+          }) : points;
+
+          // Use the breakpoints array to create array of data keys:
+          this.keys = affix(this.breakpoints, this.prefix);
+          this.aka = null; // Reset to just in case a value was merged in.
+
+          if (aliases) {
+            aliasKeys = [];
+            i = aliases.length;
+            while (i--) aliasKeys.push(affix(this.breakpoints, aliases[i]));
+            this.aka = aliasKeys; // this.aka is an array of arrays (one for each alias)
+            this.keys = concat.apply(this.keys, aliasKeys); // flatten aliases into this.keys
+          }
+
+          sets.all = sets.all.concat(sets[this.uid] = this.keys); // combined keys ===> sets.all
+          return this;
         }
-
-        // Remove breakpoints that are above the device's max dimension,
-        // in order to reduce the number of iterations needed later.
-        this.breakpoints = isNumeric ? sift(points, function(n) { 
-          return n <= screenMax; 
-        }) : points;
-
-        // Use the breakpoints array to create array of data keys:
-        this.keys = affix(this.breakpoints, this.prefix);
-        this.aka = null; // Reset to just in case a value was merged in.
-
-        if (aliases) {
-          aliasKeys = [];
-          i = aliases.length;
-          while (i--) aliasKeys.push(affix(this.breakpoints, aliases[i]));
-          this.aka = aliasKeys; // this.aka is an array of arrays (one for each alias)
-          this.keys = concat.apply(this.keys, aliasKeys); // flatten aliases into this.keys
-        }
-
-        sets.all = sets.all.concat(sets[this.uid] = this.keys); // combined keys ===> sets.all
-        return this;
-      }
 
       , target: function() {
-        this.$e = $(sel(sets[this.uid])); // Cache selection. DOM must be ready.
-        store(this.$e, initContentKey);  // Store original (no-js) value to data key.
-        this.keys.push(initContentKey);  // #keys now equals #breakpoints+1
-        return this;
-      }
+          this.$e = $(sel(sets[this.uid])); // Cache selection. DOM must be ready.
+          store(this.$e, initContentKey);  // Store original (no-js) value to data key.
+          this.keys.push(initContentKey);  // #keys now equals #breakpoints+1
+          return this;
+        }
 
       // The rest of the methods are designed for use with single elements.
       // They are for use in a cloned instances within a loop.
       , decideValue: function() {
-        // Return the first value from the values array that passes the boolean
-        // test callback. If none pass the test, then return the fallback value.
-        // this.breakpoints.length === this.values.length + 1  
-        // The extra member in the values array is the initContentKey value.
-        var val = null, subjects = this.breakpoints, sL = subjects.length, i = sL;
-        while (val == null && i--) this.fn(subjects[i]) && (val = this.values[i]);
-        this.newValue = typeof val === 'string' ? val : this.values[sL];
-        return this; // chainable
-      }
+          // Return the first value from the values array that passes the boolean
+          // test callback. If none pass the test, then return the fallback value.
+          // this.breakpoints.length === this.values.length + 1  
+          // The extra member in the values array is the initContentKey value.
+          var val = null, subjects = this.breakpoints, sL = subjects.length, i = sL;
+          while (val == null && i--) this.fn(subjects[i]) && (val = this.values[i]);
+          this.newValue = typeof val === 'string' ? val : this.values[sL];
+          return this; // chainable
+        }
 
       , prepareData: function(elem) {
-        this.$e = $(elem);
-        this.mode = detectMode(elem);
-        this.values = access(this.$e, this.keys);
-        if (this.aka) {
-          // If there are alias keys then there may be alias values. Merge the values from 
-          // all the aliases into the values array. The merge method only merges in truthy values
-          // and prevents falsey values from overwriting truthy ones. (See Response.merge)
-          // Each of the this.aka arrays has the same length as the this.values
-          // array, so no new indexes will be added, just filled if there's truthy values.
-          var i = this.aka.length;
-          while (i--) this.values = merge(this.values, access(this.$e, this.aka[i]));
+          this.$e = $(elem);
+          this.mode = detectMode(elem);
+          this.values = access(this.$e, this.keys);
+          if (this.aka) {
+            // If there are alias keys then there may be alias values. Merge the values from 
+            // all the aliases into the values array. The merge method only merges in truthy values
+            // and prevents falsey values from overwriting truthy ones. (See Response.merge)
+            // Each of the this.aka arrays has the same length as the this.values
+            // array, so no new indexes will be added, just filled if there's truthy values.
+            var i = this.aka.length;
+            while (i--) this.values = merge(this.values, access(this.$e, this.aka[i]));
+          }
+          return this.decideValue();
         }
-        return this.decideValue();
-      }
 
       , updateDOM: function() {
-        // Apply the method that performs the actual swap. When updateDOM called this.$e and this.e refer
-        // to single elements. Only update the DOM when the new value is different than the current value.
-        if (this.currValue === this.newValue) { return this; }
-        this.currValue = this.newValue;
-        if (0 < this.mode) { 
-          this.$e[0].setAttribute('src', this.newValue); 
-        } else if (null == this.newValue) { 
-          this.$e.empty && this.$e.empty(); 
-        } else {
-          if (this.$e.html) {
-            this.$e.html(this.newValue); 
+          // Apply the method that performs the actual swap. When updateDOM called this.$e and this.e refer
+          // to single elements. Only update the DOM when the new value is different than the current value.
+          if (this.currValue === this.newValue) { return this; }
+          this.currValue = this.newValue;
+          if (0 < this.mode) { 
+            this.$e[0].setAttribute('src', this.newValue); 
+          } else if (null == this.newValue) { 
+            this.$e.empty && this.$e.empty(); 
           } else {
-            this.$e.empty && this.$e.empty();
-            this.$e[0].innerHTML = this.newValue;
+            if (this.$e.html) {
+              this.$e.html(this.newValue); 
+            } else {
+              this.$e.empty && this.$e.empty();
+              this.$e[0].innerHTML = this.newValue;
+            }
           }
+          // this.$e.trigger(update); // may add this event in future
+          return this;
         }
-        // this.$e.trigger(update); // may add this event in future
-        return this;
-      }
-
     };
   }());
   
@@ -820,17 +806,6 @@
     return Response;
   }
 
-  // Handler for adding inx/inY/inViewport to $.fn (or another prototype).
-  function exposeAreaFilters(engine, proto, force) {
-    each(['inX', 'inY', 'inViewport'], function(methodName) {
-      (force || !proto[methodName]) && (proto[methodName] = function(verge, invert) {
-        return engine(sift(this, function(el) {
-          return !!el && !invert === Response[methodName](el, verge); 
-        }));
-      });
-    });
-  }
-
   /**
    * Response.bridge
    * Bridges applicable methods into the specified host (e.g. jQuery)
@@ -842,20 +817,8 @@
       // Expose .dataset() and .deletes() to jQuery:
       if (force || void 0 === host.fn.dataset) host.fn.dataset = datasetChainable; 
       if (force || void 0 === host.fn.deletes) host.fn.deletes = deletesChainable;
-      // Expose .inX() .inY() .inViewport()
-      exposeAreaFilters(host, host.fn, force);
     }
     return Response;
-  }
-  
-  /**
-   * Response.chain
-   * @since 0.3.0
-   * @deprecated Use Response.bridge instead.
-   */
-  function chain (host, force) {
-    host = arguments.length ? host : $;
-    return bridge(host, force);
   }
   
   Response = {
@@ -865,7 +828,6 @@
     //  return $(sel(sets[prop] || sets.all));
     //}
     , noConflict: noConflict
-    , chain: chain
     , bridge: bridge
     , create: create
     , addTest: addTest
